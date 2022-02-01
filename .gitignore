@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.notion-hugo-cache/
+tmp/
+content_notion/
+
+.DS_Store
+*.rest
+notion-hugo.config.js
