@@ -91,14 +91,24 @@ const validateAwsUrlIncluded = async (blocks: any[]): Promise<string[]> => {
 
 const fetchBodyFromNotion = async (
   config: NotionHugoConfig,
-  frontMatter: frontMatter
+  frontMatter: frontMatter,
+  argv: CliArgs
 ): Promise<string> => {
   const blocks: ListBlockChildrenResponseResults = await getBlocks(
     frontMatter.sys.pageId
   );
 
   const awsUrls = await validateAwsUrlIncluded(blocks);
+
   if (awsUrls.length > 0) {
+    if (argv.server) {
+      log(
+        `The AWS url was found, but the process skipping (In server mode).`,
+        LogTypes.warn
+      );
+      return "";
+    }
+
     for (const imageUrl of awsUrls) {
       log(`${imageUrl} - [PageTitle: ${frontMatter.title}]`, LogTypes.warn);
       const filepath = await downloadImage(config, frontMatter, imageUrl);
@@ -162,7 +172,7 @@ const fetchDataFromNotion = async (
       );
     }
 
-    const mdString = await fetchBodyFromNotion(config, frontMatter);
+    const mdString = await fetchBodyFromNotion(config, frontMatter, argv);
     await writeContentFile(config, frontMatter, mdString);
   };
 
