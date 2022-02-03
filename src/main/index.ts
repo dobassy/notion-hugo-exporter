@@ -168,8 +168,8 @@ const fetchDataFromNotion = async (
 
   const concurrency = config.concurrency ? config.concurrency : 5;
   const limit = pLimit(concurrency);
-  const response = await getPublishedArticles();
-  const tasks = response.results.map((page) =>
+  const results = await getPublishedArticles();
+  const tasks = results.map((page) =>
     limit(() => convertAndWriteMarkdown(page["id"]))
   );
 
