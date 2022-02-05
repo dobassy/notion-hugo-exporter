@@ -148,6 +148,14 @@ const fetchDataFromNotion = async (
     }
 
     const lastCheckedCache = await findByPageId(pageId);
+    log(
+      `[pageId: ${pageId}] Check cache: ${
+        lastCheckedCache
+          ? "Found: " + lastCheckedCache.createdTime
+          : "Not found: null"
+      }`
+    );
+
     // Check the update date and skip if it doesn't need to be processed
     if (
       !argv.force &&
@@ -173,6 +181,7 @@ const fetchDataFromNotion = async (
     }
 
     const mdString = await fetchBodyFromNotion(config, frontMatter, argv);
+    log(`[pageId: ${pageId}] Writing...`);
     await writeContentFile(config, frontMatter, mdString);
   };
 
