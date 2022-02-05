@@ -1,4 +1,5 @@
 import { ensureDir, writeFile } from "fs-extra";
+import path from "path";
 import { trimYmd } from "./helpers/date";
 import { log } from "./logger";
 
@@ -31,7 +32,7 @@ export const determineFilePath = (
   const datePrefix = trimYmd(meta.date);
   let fileName = `${datePrefix}-${meta.sys.pageId}`;
 
-  return `./${directory}/${fileName}.${fileExtension}`;
+  return path.normalize(`./${directory}/${fileName}.${fileExtension}`);
 };
 
 const setFileContent = (
