@@ -106,23 +106,22 @@ const fetchBodyFromNotion = async (
         `The AWS url was found, but the process skipping (In server mode).`,
         LogTypes.warn
       );
-      return "";
-    }
-
-    for (const imageUrl of awsUrls) {
-      log(`${imageUrl} - [PageTitle: ${frontMatter.title}]`, LogTypes.warn);
-      const filepath = await downloadImage(config, frontMatter, imageUrl);
-      if (
-        config.downloadImageCallback &&
-        typeof config.downloadImageCallback === "function" &&
-        filepath &&
-        fs.existsSync(filepath)
-      ) {
-        config.downloadImageCallback(filepath);
+    } else {
+      for (const imageUrl of awsUrls) {
+        log(`${imageUrl} - [PageTitle: ${frontMatter.title}]`, LogTypes.warn);
+        const filepath = await downloadImage(config, frontMatter, imageUrl);
+        if (
+          config.downloadImageCallback &&
+          typeof config.downloadImageCallback === "function" &&
+          filepath &&
+          fs.existsSync(filepath)
+        ) {
+          config.downloadImageCallback(filepath);
+        }
       }
+      throw error(`The AWS url was found. Access time to this URL is limited.
+      Be sure to change this URL to a publicly available URL.`);
     }
-    throw error(`The AWS url was found. Access time to this URL is limited.
-    Be sure to change this URL to a publicly available URL.`);
   }
 
   // Convert to Markdown using npm 'github souvikinator/notion-to-md'
