@@ -12,6 +12,7 @@ import { urlize } from "../helpers/string";
 export const getPageFrontmatter = async (
   pageId: string
 ): Promise<frontMatter> => {
+  log(`[Info] [pageId: ${pageId}] Fetch from Notion API`);
   const pageMeta = await getArticle(pageId);
   if (pageMeta["archive"]) {
     log(pageMeta);

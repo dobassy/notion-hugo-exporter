@@ -59,6 +59,17 @@ const checkUpdatedTime = (
   );
 };
 
+// Judgement if the page is updated based on the cache information and lastEditedTime
+// @params page Object returned by Notion API
+// @return true: Updated required
+const isRequiredPageUpdate = async (page: any): Promise<boolean> => {
+  const pageCache = await findByPageId(page["id"]);
+  if (!pageCache) {
+    return true;
+  }
+  return page["last_edited_time"] !== pageCache.lastEditedTime;
+};
+
 const notionImageBlockUrl = (block: any): string => {
   if (block["type"] === "image" && block["image"]["file"]) {
     return block["image"]["file"]["url"];
@@ -148,7 +159,7 @@ const fetchDataFromNotion = async (
 
     const lastCheckedCache = await findByPageId(pageId);
     log(
-      `[pageId: ${pageId}] Check cache: ${
+      `[Info] [pageId: ${pageId}] Check cache: ${
         lastCheckedCache
           ? "Found: " + lastCheckedCache.createdTime
           : "Not found: null"
@@ -187,9 +198,17 @@ const fetchDataFromNotion = async (
   const concurrency = config.concurrency ? config.concurrency : 5;
   const limit = pLimit(concurrency);
   const results = await getPublishedArticles();
-  const tasks = results.map((page) =>
-    limit(() => convertAndWriteMarkdown(page["id"]))
-  );
+
+  const tasks: Promise<void>[] = [];
+  for (const page of results) {
+    if (await isRequiredPageUpdate(page)) {
+      tasks.push(limit(() => convertAndWriteMarkdown(page["id"])));
+    } else {
+      log(
+        `[Info] [pageId: ${page["id"]}] Not chenged. No need to update ...skip`
+      );
+    }
+  }
 
   await Promise.all(tasks).then(() => {
     log(`----------- results --------------`);
