@@ -191,7 +191,7 @@ const fetchDataFromNotion = async (
     }
 
     const mdString = await fetchBodyFromNotion(config, frontMatter, argv);
-    log(`[pageId: ${pageId}] Writing...`);
+    log(`[Info] [pageId: ${pageId}] Writing...`);
     await writeContentFile(config, frontMatter, mdString);
   };
 
@@ -201,9 +201,12 @@ const fetchDataFromNotion = async (
 
   const tasks: Promise<void>[] = [];
   for (const page of results) {
-    if (await isRequiredPageUpdate(page)) {
+    if (argv.force || (await isRequiredPageUpdate(page))) {
       tasks.push(limit(() => convertAndWriteMarkdown(page["id"])));
     } else {
+      skipMessages.push(
+        `Skip mesage: pageId: ${page["id"]}}: title: ${page["properties"]["Name"]["title"][0]["plain_text"]}}`
+      );
       log(
         `[Info] [pageId: ${page["id"]}] Not chenged. No need to update ...skip`
       );
