@@ -118,19 +118,43 @@ const fetchBodyFromNotion = async (
         LogTypes.warn
       );
     } else {
+      const callbackTasks: Promise<void>[] = [];
+      const concurrency = config.concurrency ? config.concurrency : 5;
+      const limit = pLimit(concurrency);
+
       for (const imageUrl of awsUrls) {
         log(`${imageUrl} - [PageTitle: ${frontMatter.title}]`, LogTypes.warn);
         const filepath = await downloadImage(config, frontMatter, imageUrl);
         if (
-          config.downloadImageCallback &&
           typeof config.downloadImageCallback === "function" &&
           filepath &&
           fs.existsSync(filepath)
         ) {
-          config.downloadImageCallback(filepath);
+          callbackTasks.push(
+            // @ts-ignore
+            limit(() => config.downloadImageCallback(filepath))
+          );
         }
       }
-      throw error(`The AWS url was found. Access time to this URL is limited.
+
+      if (callbackTasks.length > 0) {
+        try {
+          await Promise.all(callbackTasks);
+
+          log(
+            `[Info] [pageId: ${frontMatter.sys.pageId}] User defined callback is completed`,
+            LogTypes.info
+          );
+        } catch (error) {
+          log(
+            "[Error] Error occurred in a user defined callback",
+            LogTypes.error
+          );
+          // @ts-ignore
+          throw new Error(error);
+        }
+      }
+      throw error(`The AWS image url was found in the article. Access time to this URL is limited.
       Be sure to change this URL to a publicly available URL.`);
     }
   }
