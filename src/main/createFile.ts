@@ -1,4 +1,5 @@
 import { ensureDir, writeFile } from "fs-extra";
+import path from "path";
 import { trimYmd } from "./helpers/date";
 import { log } from "./logger";
 
@@ -28,10 +29,10 @@ export const determineFilePath = (
   const fileExtension = "md";
   const directory = parseDirectoryPath(config, meta);
 
-  const datePrefix = trimYmd(meta.sys.createdTime);
+  const datePrefix = trimYmd(meta.date);
   let fileName = `${datePrefix}-${meta.sys.pageId}`;
 
-  return `./${directory}/${fileName}.${fileExtension}`;
+  return path.normalize(`./${directory}/${fileName}.${fileExtension}`);
 };
 
 const setFileContent = (
@@ -64,6 +65,7 @@ const createFile = async (
   // create file
   await createDirectoryForFile(config, frontMatter);
   const filePath = determineFilePath(config, frontMatter);
+  log(`[pageId: ${frontMatter.sys.pageId}] Write file: path: ${filePath}`);
   await writeFile(filePath, fileContent).catch((error) => {
     if (error) {
       log(error);

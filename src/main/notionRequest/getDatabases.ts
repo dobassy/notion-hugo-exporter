@@ -1,6 +1,5 @@
 import { log } from "../logger";
 import notion from "./client";
-import type { ListDatabasesResponse } from "@notionhq/client/build/src/api-endpoints.d";
 
 const databaseId = process.env.NOTION_BLOG_DATABASE_ID;
 
@@ -12,25 +11,37 @@ export const getDtabaseMeta = async () => {
   return response;
 };
 
-export const getPublishedArticles =
-  async (): Promise<ListDatabasesResponse> => {
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      filter: {
-        property: "isPublished",
-        checkbox: {
-          equals: true,
+export const getPublishedArticles = async (): Promise<any[]> => {
+  const pages = [];
+  let cursor = undefined;
+
+  while (true) {
+    const { results, next_cursor }: { results: any[]; next_cursor: any } =
+      await notion.databases.query({
+        database_id: databaseId,
+        start_cursor: cursor,
+        filter: {
+          property: "isPublished",
+          checkbox: {
+            equals: true,
+          },
         },
-      },
-      sorts: [
-        {
-          property: "Created",
-          direction: "ascending",
-        },
-      ],
-    });
-    return response;
-  };
+        sorts: [
+          {
+            property: "Created",
+            direction: "ascending",
+          },
+        ],
+      });
+    pages.push(...results);
+    if (!next_cursor) {
+      break;
+    }
+    cursor = next_cursor;
+  }
+
+  return pages;
+};
 
 // Check if Notion Database Properties meet the required blogging requirements
 export const checkRequiredPropertiesExists = async () => {

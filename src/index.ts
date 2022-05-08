@@ -2,17 +2,20 @@ import * as yargs from "yargs";
 import { fetchDataFromNotion } from "./main";
 import { loadConfig } from "./main/config";
 import { initLogger, LogTypes } from "./main/logger";
+import { runServer } from "./server";
 
 yargs
   .options({
     clean: { type: "boolean", default: false },
     force: { type: "boolean", default: false, alias: "F" },
     verbose: { type: "boolean", default: false },
+    server: { type: "boolean", default: false, alias: "S" },
   })
   .describe({
     clean: "Delete all output directories",
     force: "Ignore the timestamp cache and get the remote data",
     verbose: "Show detail logs",
+    server: "Detects page changes in Notion's blog database and retrives data",
   })
   .usage("Usage: notion-hugo [flags]");
 
@@ -45,6 +48,9 @@ const initialize = async (): Promise<unknown> => {
       return null;
     }
     await fetchDataFromNotion(config, argv);
+    if (argv.server) {
+      return runServer(config, argv);
+    }
   });
 };
 

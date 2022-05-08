@@ -1,6 +1,20 @@
 const downloadImageCallback = (filepath) => {
   console.log(`Hello, I'm in a Callabck: filepath ${filepath}`);
-  uploadImageToWordpress(filepath);
+  return new Promise((resolve, reject) => {
+    uploadImageToWordpress(filepath)
+      .then((res) => {
+        console.log(
+          `Upload completed: source_url: ${res.data.source_url} (Media ID: ${res.data.id})`
+        );
+
+        return resolve(true);
+      })
+      .catch((err) => {
+        return reject(
+          new Error(`Failed to upload file ${filepath}: Details: ${err}`)
+        );
+      });
+  });
 };
 
 const wp_username = "username";
@@ -34,16 +48,7 @@ const uploadImageToWordpress = (filepath) => {
   };
 
   console.log(`Uploaded... filename: ${uploadFilename}`);
-  axios
-    .post(wp_url, form, config)
-    .then((res) => {
-      console.log(
-        `Upload completed: source_url: ${res.data.source_url} (Media ID: ${res.data.id})`
-      );
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  return axios.post(wp_url, form, config);
 };
 
 module.exports = {

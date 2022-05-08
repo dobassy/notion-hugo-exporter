@@ -59,6 +59,17 @@ const checkUpdatedTime = (
   );
 };
 
+// Judgement if the page is updated based on the cache information and lastEditedTime
+// @params page Object returned by Notion API
+// @return true: Updated required
+const isRequiredPageUpdate = async (page: any): Promise<boolean> => {
+  const pageCache = await findByPageId(page["id"]);
+  if (!pageCache) {
+    return true;
+  }
+  return page["last_edited_time"] !== pageCache.lastEditedTime;
+};
+
 const notionImageBlockUrl = (block: any): string => {
   if (block["type"] === "image" && block["image"]["file"]) {
     return block["image"]["file"]["url"];
@@ -91,28 +102,61 @@ const validateAwsUrlIncluded = async (blocks: any[]): Promise<string[]> => {
 
 const fetchBodyFromNotion = async (
   config: NotionHugoConfig,
-  frontMatter: frontMatter
+  frontMatter: frontMatter,
+  argv: CliArgs
 ): Promise<string> => {
   const blocks: ListBlockChildrenResponseResults = await getBlocks(
     frontMatter.sys.pageId
   );
 
   const awsUrls = await validateAwsUrlIncluded(blocks);
+
   if (awsUrls.length > 0) {
-    for (const imageUrl of awsUrls) {
-      log(`${imageUrl} - [PageTitle: ${frontMatter.title}]`, LogTypes.warn);
-      const filepath = await downloadImage(config, frontMatter, imageUrl);
-      if (
-        config.downloadImageCallback &&
-        typeof config.downloadImageCallback === "function" &&
-        filepath &&
-        fs.existsSync(filepath)
-      ) {
-        config.downloadImageCallback(filepath);
+    if (argv.server) {
+      log(
+        `The AWS url was found, but the process skipping (In server mode).`,
+        LogTypes.warn
+      );
+    } else {
+      const callbackTasks: Promise<void>[] = [];
+      const concurrency = config.concurrency ? config.concurrency : 5;
+      const limit = pLimit(concurrency);
+
+      for (const imageUrl of awsUrls) {
+        log(`${imageUrl} - [PageTitle: ${frontMatter.title}]`, LogTypes.warn);
+        const filepath = await downloadImage(config, frontMatter, imageUrl);
+        if (
+          typeof config.downloadImageCallback === "function" &&
+          filepath &&
+          fs.existsSync(filepath)
+        ) {
+          callbackTasks.push(
+            // @ts-ignore
+            limit(() => config.downloadImageCallback(filepath))
+          );
+        }
       }
+
+      if (callbackTasks.length > 0) {
+        try {
+          await Promise.all(callbackTasks);
+
+          log(
+            `[Info] [pageId: ${frontMatter.sys.pageId}] User defined callback is completed`,
+            LogTypes.info
+          );
+        } catch (error) {
+          log(
+            "[Error] Error occurred in a user defined callback",
+            LogTypes.error
+          );
+          // @ts-ignore
+          throw new Error(error);
+        }
+      }
+      throw error(`The AWS image url was found in the article. Access time to this URL is limited.
+      Be sure to change this URL to a publicly available URL.`);
     }
-    throw error(`The AWS url was found. Access time to this URL is limited.
-    Be sure to change this URL to a publicly available URL.`);
   }
 
   // Convert to Markdown using npm 'github souvikinator/notion-to-md'
@@ -138,6 +182,14 @@ const fetchDataFromNotion = async (
     }
 
     const lastCheckedCache = await findByPageId(pageId);
+    log(
+      `[Info] [pageId: ${pageId}] Check cache: ${
+        lastCheckedCache
+          ? "Found: " + lastCheckedCache.createdTime
+          : "Not found: null"
+      }`
+    );
+
     // Check the update date and skip if it doesn't need to be processed
     if (
       !argv.force &&
@@ -162,16 +214,28 @@ const fetchDataFromNotion = async (
       );
     }
 
-    const mdString = await fetchBodyFromNotion(config, frontMatter);
+    const mdString = await fetchBodyFromNotion(config, frontMatter, argv);
+    log(`[Info] [pageId: ${pageId}] Writing...`);
     await writeContentFile(config, frontMatter, mdString);
   };
 
   const concurrency = config.concurrency ? config.concurrency : 5;
   const limit = pLimit(concurrency);
-  const response = await getPublishedArticles();
-  const tasks = response.results.map((page) =>
-    limit(() => convertAndWriteMarkdown(page["id"]))
-  );
+  const results = await getPublishedArticles();
+
+  const tasks: Promise<void>[] = [];
+  for (const page of results) {
+    if (argv.force || (await isRequiredPageUpdate(page))) {
+      tasks.push(limit(() => convertAndWriteMarkdown(page["id"])));
+    } else {
+      skipMessages.push(
+        `Skip mesage: pageId: ${page["id"]}}: title: ${page["properties"]["Name"]["title"][0]["plain_text"]}}`
+      );
+      log(
+        `[Info] [pageId: ${page["id"]}] Not chenged. No need to update ...skip`
+      );
+    }
+  }
 
   await Promise.all(tasks).then(() => {
     log(`----------- results --------------`);

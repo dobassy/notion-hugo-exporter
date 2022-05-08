@@ -2,6 +2,7 @@ interface CliArgs {
   clean: boolean;
   force: boolean;
   verbose: boolean;
+  server: boolean;
 }
 
 type NotionHugoConfig = {
@@ -9,6 +10,7 @@ type NotionHugoConfig = {
   concurrency?: number;
   saveAwsImageDirectory?: string;
   downloadImageCallback?: (filepath: string) => void;
+  fetchInterval: number;
 };
 
 type ModelPageMeta = {
@@ -61,3 +63,9 @@ type frontMatter =
       images?: string[];
       section?: string;
     };
+
+type Task = {
+  pageId: string;
+  status: string;
+  title: string;
+};
