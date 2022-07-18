@@ -10,6 +10,7 @@ type NotionHugoConfig = {
   concurrency?: number;
   saveAwsImageDirectory?: string;
   downloadImageCallback?: (filepath: string) => void;
+  customTransformerCallback?: (n2m: any) => void;
   fetchInterval: number;
 };
 

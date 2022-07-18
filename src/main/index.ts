@@ -161,6 +161,9 @@ const fetchBodyFromNotion = async (
 
   // Convert to Markdown using npm 'github souvikinator/notion-to-md'
   const n2m = new NotionToMarkdown({ notionClient: notion });
+  if (typeof config.customTransformerCallback === "function") {
+    config.customTransformerCallback(n2m);
+  }
   const mdblocks: MdBlock[] = await n2m.blocksToMarkdown(blocks);
   const mdString = n2m.toMarkdownString(mdblocks);
   return mdString;

@@ -153,6 +153,38 @@ Cache the last modified date of a Notion's page with Notion's pageId as the prim
 
 To minimize the number of request to the Notion API, we cache the date and time of the retrieved pages. Delete the `.notion-hugo-cache/` directory if you want to initialize it.
 
+## Customize according to the property type
+
+You can define your own custom transformer for a notion type.
+
+**CustomTransformer** is a feature provided by the `notion-to-md` library. Seed the [official document](https://github.com/souvikinator/notion-to-md) for more details.
+
+It can be optionally implemented in the `notion-hugo.config.js` file as shown bellow.
+
+```js
+const customTransformerCallback = (n2m) => {
+  n2m.setCustomTransformer("bookmark", async (block) => {
+    const { bookmark } = block;
+    if (!bookmark?.url) return "";
+    return `\{\{<blogcard "${bookmark.url}">\}\}`;
+  });
+};
+```
+
+Original output:
+
+```md
+[bookmark](https://github.com/)
+```
+
+After transform output:
+
+```
+{{<blogcard "https://github.com/">}}
+```
+
+Useful when converting to Hugo's shortcode.
+
 ## Watch mode (Server mode)
 
 Exporting Notion pages can be time consuming, so running command one by one can be tedious. You can use the `--server` option to enter watch mode.
