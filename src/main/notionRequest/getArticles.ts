@@ -70,7 +70,16 @@ const pageTitle = (prop: any): string => {
   return extractPlainText(prop["Name"]);
 };
 const pageAuthor = (prop: any): string => {
-  return "Writer";
+  const defaultAuthor = "Writer";
+  if (prop["Author"] === undefined) {
+    return defaultAuthor;
+  }
+  const author = extractPlainText(prop["Author"]);
+  if (author) {
+    return author;
+  } else {
+    return defaultAuthor;
+  }
 };
 const pageDraft = (prop: any): boolean => {
   if (prop["isDraft"] !== undefined) {
