@@ -35,9 +35,9 @@ export const getPageFrontmatter = async (
     tags: pageTags(properties),
     categories: pageCategory(properties),
     toc: pageToC(properties),
-    author: "Writer",
+    author: pageAuthor(properties),
     legacy_alert: pageLegacyAlert(properties),
-    draft: !properties["isPublished"],
+    draft: pageDraft(properties),
   };
 
   if (hasPlainText(properties["Url"])) {
@@ -68,6 +68,15 @@ export const getPageFrontmatter = async (
 
 const pageTitle = (prop: any): string => {
   return extractPlainText(prop["Name"]);
+};
+const pageAuthor = (prop: any): string => {
+  return "Writer";
+};
+const pageDraft = (prop: any): boolean => {
+  if (prop["isDraft"] !== undefined) {
+    return isChecked(prop["isDraft"]);
+  }
+  return false;
 };
 const pagePublishedAt = (prop: any): string => {
   return extractDateTime(prop["PublishedAt"]);
