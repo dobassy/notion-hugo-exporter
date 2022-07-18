@@ -63,7 +63,30 @@ module.exports = {
 - `downloadImageCallback`: Defaults to `null`. If you want to use the downloaded image for addition processing, you can implement a callback. For example, an example implementation for uploading an image to WordPress (using REST API) can be found in `notion-hugo.config.02callback-sample.js`
 - `fetchInterval`: Only available in server mode. See "Watch mode (Server mode)" for more information. Defaults to `30`.
 
-### Step 4. Run
+### Step 4. Prepare the proparty in Notion database
+
+Notion database property keys must be:
+
+| Property Name | Type                 | Required                | Default value |
+| ------------- | -------------------- | ----------------------- | ------------- |
+| isPublished   | Boolean              | ✅                      |
+| Category      | Select               | ✅                      |
+| Tags          | multi_select         | ✅                      |
+| PublishedAt   | date                 | ✅                      |
+| UpdatedAt     | date                 | ✅                      |
+| Url           | Text                 | ✅ (Either Url or Slug) |
+| Slug          | Text                 | ✅ (Either Url or Slug) |
+| LegacyAlert   | Boolean              | ✅                      |
+| Description   | Text                 | ✅                      |
+| Image         | Image (external url) | ✅                      |
+| ToC           | Boolean              | ✅                      |
+| Section       | Select               | ✅                      |
+| Author        | Text or Select       |                         | "Writer"      |
+| isDraft       | Boolean              |                         | false         |
+
+Currently, these keys must be set manually.
+
+### Step 5. Run
 
 Finally, exec command.
 
