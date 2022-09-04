@@ -8,4 +8,6 @@ module.exports = {
   downloadImageCallback: null,
 
   customTransformerCallback: null,
+
+  authorName: "Overridden author",
 };

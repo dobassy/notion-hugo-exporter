@@ -12,6 +12,7 @@ type NotionHugoConfig = {
   downloadImageCallback?: (filepath: string) => void;
   customTransformerCallback?: (n2m: any) => void;
   fetchInterval: number;
+  authorName?: string;
 };
 
 type ModelPageMeta = {

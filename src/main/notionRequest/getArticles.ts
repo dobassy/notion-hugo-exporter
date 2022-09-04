@@ -4,13 +4,18 @@ import type { ListBlockChildrenResponse } from "@notionhq/client/build/src/api-e
 import { ListBlockChildrenResponseResults } from "notion-to-md/build/types";
 import { urlize } from "../helpers/string";
 
+interface frontmatterOptions {
+  author: string;
+}
+
 // Store all metadata in frontMatter
 // Values that are not directly needed to create Hugo pages are stored in the
 // under 'sys' key (e.g. pageId, Page modification date, etc...)
 // Note that: Notion's Page modification date (as 'last_edited_time') is different
 //            from the last update date of Hugo's page ('lastmod')
 export const getPageFrontmatter = async (
-  pageId: string
+  pageId: string,
+  options: frontmatterOptions
 ): Promise<frontMatter> => {
   log(`[Info] [pageId: ${pageId}] Fetch from Notion API`);
   const pageMeta = await getArticle(pageId);
@@ -35,7 +40,7 @@ export const getPageFrontmatter = async (
     tags: pageTags(properties),
     categories: pageCategory(properties),
     toc: pageToC(properties),
-    author: pageAuthor(properties),
+    author: pageAuthor(properties, options),
     legacy_alert: pageLegacyAlert(properties),
     draft: pageDraft(properties),
   };
@@ -69,8 +74,8 @@ export const getPageFrontmatter = async (
 const pageTitle = (prop: any): string => {
   return extractPlainText(prop["Name"]);
 };
-const pageAuthor = (prop: any): string => {
-  const defaultAuthor = "Writer";
+const pageAuthor = (prop: any, options: frontmatterOptions): string => {
+  const defaultAuthor = options.author;
   if (prop["Author"] === undefined) {
     return defaultAuthor;
   }

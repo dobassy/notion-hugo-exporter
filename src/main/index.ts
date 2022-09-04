@@ -178,7 +178,10 @@ const fetchDataFromNotion = async (
   const updatedMessages: string[] = [];
 
   const convertAndWriteMarkdown = async (pageId: string): Promise<void> => {
-    const frontMatter = await getPageFrontmatter(pageId);
+    const options: { author: string } = {
+      author: config.authorName ? config.authorName : "Writer",
+    };
+    const frontMatter = await getPageFrontmatter(pageId, options);
     if (!checkFrontMatterContainRequiredValues(frontMatter)) {
       log(frontMatter);
       throw new Error(`frontMatter does not contain the required values.`);
