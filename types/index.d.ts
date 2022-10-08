@@ -41,11 +41,13 @@ type frontMatter =
       legacy_alert: boolean;
       draft: boolean;
       url: string;
+      slug?: string;
       lastmod?: string;
       featured_image?: string;
       images?: string[];
-      slug?: string;
       section?: string;
+      linkTitle?: string;
+      weight?: number;
     }
   | {
       sys: sys;
@@ -64,7 +66,13 @@ type frontMatter =
       featured_image?: string;
       images?: string[];
       section?: string;
+      linkTitle?: string;
+      weight?: number;
     };
+
+type frontmatterOptions = {
+  author: string;
+};
 
 type Task = {
   pageId: string;
