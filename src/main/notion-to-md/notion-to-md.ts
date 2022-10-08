@@ -24,7 +24,7 @@ export class NotionToMarkdownCustom extends NotionToMarkdown {
     let mdString = "";
 
     // Insert a blank line when List starts
-    let listedStatus = false;
+    let listStyleContinuationStatus = false;
     mdBlocks.forEach((mdBlocks) => {
       // process parent blocks
       if (mdBlocks.parent) {
@@ -33,16 +33,19 @@ export class NotionToMarkdownCustom extends NotionToMarkdown {
           mdBlocks.type !== "bulleted_list_item" &&
           mdBlocks.type !== "numbered_list_item"
         ) {
-          listedStatus = false;
+          listStyleContinuationStatus = false;
           // add extra line breaks non list blocks
           mdString += `\n${md.addTabSpace(mdBlocks.parent, nestingLevel)}\n`;
         } else {
-          const preLineBreak = listedStatus ? "" : "\n";
+          const preLineBreak =
+            listStyleContinuationStatus === false && nestingLevel === 0
+              ? "\n"
+              : "";
           mdString += `${preLineBreak}${md.addTabSpace(
             mdBlocks.parent,
             nestingLevel
           )}\n`;
-          listedStatus = true;
+          listStyleContinuationStatus = true;
         }
       }
 
