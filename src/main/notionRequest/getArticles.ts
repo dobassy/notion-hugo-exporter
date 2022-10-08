@@ -16,6 +16,7 @@ import {
   pageSlug,
   pageUrl,
   pageDescription,
+  pageFilepath,
   pageLinkTitle,
   pageWeight,
   extractExternalUrl,
@@ -69,6 +70,11 @@ export const getPageFrontmatter = async (
     throw new Error(
       `One of the "Url" and "Slug" page properties must be defined.`
     );
+  }
+
+  // Property for forcing the exported `.md` file name.
+  if (pageFilepath(properties)) {
+    frontMatter["sys"]["propFilepath"] = pageFilepath(properties);
   }
 
   if (pageSection(properties)) {

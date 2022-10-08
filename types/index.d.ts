@@ -26,6 +26,7 @@ type sys = {
   pageId: string;
   createdTime: string;
   lastEditedTime: string;
+  propFilepath?: string;
 };
 
 type frontMatter =

@@ -59,6 +59,9 @@ export const pageDescription = (prop: any): string => {
   return extractPlainText(prop["Description"]);
 };
 
+export const pageFilepath = (prop: any): string => {
+  return extractPlainText(prop["filepath"]);
+};
 export const pageLinkTitle = (prop: any): string => {
   return extractPlainText(prop["linkTitle"]);
 };
