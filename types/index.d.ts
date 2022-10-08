@@ -10,7 +10,9 @@ type NotionHugoConfig = {
   concurrency?: number;
   saveAwsImageDirectory?: string;
   downloadImageCallback?: (filepath: string) => void;
+  customTransformerCallback?: (n2m: any) => void;
   fetchInterval: number;
+  authorName?: string;
 };
 
 type ModelPageMeta = {
@@ -24,6 +26,7 @@ type sys = {
   pageId: string;
   createdTime: string;
   lastEditedTime: string;
+  propFilepath?: string;
 };
 
 type frontMatter =
@@ -39,11 +42,13 @@ type frontMatter =
       legacy_alert: boolean;
       draft: boolean;
       url: string;
+      slug?: string;
       lastmod?: string;
       featured_image?: string;
       images?: string[];
-      slug?: string;
       section?: string;
+      linkTitle?: string;
+      weight?: number;
     }
   | {
       sys: sys;
@@ -62,7 +67,13 @@ type frontMatter =
       featured_image?: string;
       images?: string[];
       section?: string;
+      linkTitle?: string;
+      weight?: number;
     };
+
+type frontmatterOptions = {
+  author: string;
+};
 
 type Task = {
   pageId: string;

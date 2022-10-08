@@ -12,6 +12,7 @@ export enum LogCategories {
 }
 
 export enum LogTypes {
+  debug,
   log,
   info,
   warn,
@@ -29,6 +30,11 @@ export const log = (
 ): void => {
   const emitLog = () => {
     switch (type) {
+      case LogTypes.debug:
+        if (process.env.NODE_ENV === "DEBUG") {
+          console.info(message);
+        }
+        break;
       case LogTypes.info:
         console.info(`${colorGreen}${message}${colorWhite}`);
         break;

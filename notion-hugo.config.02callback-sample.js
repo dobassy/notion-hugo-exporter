@@ -17,6 +17,14 @@ const downloadImageCallback = (filepath) => {
   });
 };
 
+const customTransformerCallback = (n2m) => {
+  n2m.setCustomTransformer("bookmark", async (block) => {
+    const { bookmark } = block;
+    if (!bookmark?.url) return "";
+    return `\{\{<blogcard "${bookmark.url}">\}\}`;
+  });
+};
+
 const wp_username = "username";
 const wp_password = "password";
 const wp_url = "http://wordpress.example.com/wp-json/wp/v2/media";
@@ -58,4 +66,6 @@ module.exports = {
   saveAwsImageDirectory: "tmp/downloads",
 
   downloadImageCallback: downloadImageCallback,
+
+  customTransformerCallback: customTransformerCallback,
 };

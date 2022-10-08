@@ -6,6 +6,13 @@ import { log } from "./logger";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const YAML = require("json-to-pretty-yaml");
 
+export const createContentDirectory = async (
+  filepath: string
+): Promise<void> => {
+  const directory = path.dirname(filepath);
+  await ensureDir(`./${directory}`);
+};
+
 export const parseDirectoryPath = (
   config: NotionHugoConfig,
   meta: frontMatter
@@ -14,25 +21,21 @@ export const parseDirectoryPath = (
   return `./${config.directory}/${section}`;
 };
 
-export const createDirectoryForFile = async (
-  config: NotionHugoConfig,
-  meta: frontMatter
-): Promise<void> => {
-  const directory = parseDirectoryPath(config, meta);
-  await ensureDir(`./${directory}`);
-};
-
 export const determineFilePath = (
   config: NotionHugoConfig,
   meta: frontMatter
 ): string => {
-  const fileExtension = "md";
-  const directory = parseDirectoryPath(config, meta);
+  if (meta.sys.propFilepath) {
+    return path.normalize(`./${config.directory}/${meta.sys.propFilepath}`);
+  } else {
+    const fileExtension = "md";
+    const directory = parseDirectoryPath(config, meta);
 
-  const datePrefix = trimYmd(meta.date);
-  let fileName = `${datePrefix}-${meta.sys.pageId}`;
+    const datePrefix = trimYmd(meta.date);
+    let fileName = `${datePrefix}-${meta.sys.pageId}`;
 
-  return path.normalize(`./${directory}/${fileName}.${fileExtension}`);
+    return path.normalize(`./${directory}/${fileName}.${fileExtension}`);
+  }
 };
 
 const setFileContent = (
@@ -63,8 +66,8 @@ const createFile = async (
 ): Promise<void> => {
   const fileContent = setFileContent(frontMatter, mainContent);
   // create file
-  await createDirectoryForFile(config, frontMatter);
   const filePath = determineFilePath(config, frontMatter);
+  await createContentDirectory(filePath);
   log(`[pageId: ${frontMatter.sys.pageId}] Write file: path: ${filePath}`);
   await writeFile(filePath, fileContent).catch((error) => {
     if (error) {

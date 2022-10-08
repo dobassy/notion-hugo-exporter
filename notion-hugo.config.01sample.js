@@ -6,4 +6,8 @@ module.exports = {
   saveAwsImageDirectory: "tmp/downloads",
 
   downloadImageCallback: null,
+
+  customTransformerCallback: null,
+
+  authorName: "Overridden author",
 };
