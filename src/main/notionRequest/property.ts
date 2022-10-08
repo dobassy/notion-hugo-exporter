@@ -59,13 +59,22 @@ export const pageDescription = (prop: any): string => {
   return extractPlainText(prop["Description"]);
 };
 
-export const pageFilepath = (prop: any): string => {
+export const pageFilepath = (prop: any): string | null => {
+  if (prop["filepath"] === undefined) {
+    return null;
+  }
   return extractPlainText(prop["filepath"]);
 };
-export const pageLinkTitle = (prop: any): string => {
+export const pageLinkTitle = (prop: any): string | null => {
+  if (prop["linkTitle"] === undefined) {
+    return null;
+  }
   return extractPlainText(prop["linkTitle"]);
 };
-export const pageWeight = (prop: any): string => {
+export const pageWeight = (prop: any): string | null => {
+  if (prop["weight"] === undefined) {
+    return null;
+  }
   return extractNumber(prop["weight"]);
 };
 
