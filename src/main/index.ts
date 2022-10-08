@@ -3,7 +3,7 @@ import { error, log, LogTypes } from "./logger";
 import { getBlocks, getPageFrontmatter } from "./notionRequest/getArticles";
 import { getPublishedArticles } from "./notionRequest/getDatabases";
 import fs from "fs-extra";
-import { NotionToMarkdown } from "notion-to-md";
+import { NotionToMarkdownCustom } from "./notion-to-md/notion-to-md";
 import notion from "./notionRequest/client";
 import {
   ListBlockChildrenResponseResults,
@@ -160,7 +160,7 @@ const fetchBodyFromNotion = async (
   }
 
   // Convert to Markdown using npm 'github souvikinator/notion-to-md'
-  const n2m = new NotionToMarkdown({ notionClient: notion });
+  const n2m = new NotionToMarkdownCustom({ notionClient: notion });
   if (typeof config.customTransformerCallback === "function") {
     config.customTransformerCallback(n2m);
   }
