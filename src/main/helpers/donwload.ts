@@ -1,6 +1,6 @@
 import { ensureDir } from "fs-extra";
 import { log, LogTypes } from "../logger";
-import { getImageFilename } from "./validation";
+import { getImageFilename } from "./notionImage";
 
 const fs = require("fs");
 const Axios = require("axios");
