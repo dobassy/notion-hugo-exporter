@@ -2,6 +2,7 @@ import {
   isAwsImageUrl,
   getImageFilename,
   getImageFullName,
+  getImageUID,
 } from "./notionImage";
 
 const s3DummyUrl =
@@ -49,5 +50,12 @@ describe("getImageFilename", () => {
   test("return blank (invalid url)", () => {
     const result = getImageFullName("https://example.com/filename.png");
     expect(result).toEqual("");
+  });
+});
+
+describe("getImageUID", () => {
+  test("Matchs UID", () => {
+    const result = getImageUID(s3DummyUrl);
+    expect(result).toEqual("abcdefgh-1234-5678-abcd-123456789012");
   });
 });

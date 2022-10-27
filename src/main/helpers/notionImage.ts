@@ -23,6 +23,14 @@ export const getImageFilename = (url: string): string => {
   return result[0];
 };
 
+export const getImageUID = (url: string): string => {
+  const u = new URL(url);
+  const pathname = u.pathname;
+  const m = pathname.split("/");
+
+  return m[2];
+};
+
 export const getImageFullName = (url: string): string => {
   const u = new URL(url);
   const pathname = u.pathname;

@@ -11,8 +11,9 @@ import {
 } from "notion-to-md/build/types";
 import pLimit from "p-limit";
 import { createPage, findByPageId, updatePage } from "./datastore";
+import { createOrUpdateImageMap } from "./datastore/imageMap";
 import { isDateNewer } from "./helpers/date";
-import { isAwsImageUrl } from "./helpers/notionImage";
+import { getImageFilename, isAwsImageUrl } from "./helpers/notionImage";
 import { downloadImage } from "./helpers/donwload";
 import { includeAwsImageUrl } from "./helpers/validation";
 
@@ -171,9 +172,9 @@ const fetchBodyFromNotion = async (
     config.customTransformerCallback(n2m);
   }
   const mdblocks: MdBlock[] = await n2m.blocksToMarkdown(blocks);
-  console.log(mdblocks);
+
   const mdString = n2m.toMarkdownString(mdblocks);
-  if (includeAwsImageUrl(mdString)) {
+  if (config.s3ImageUrlWarningEnabled && includeAwsImageUrl(mdString)) {
     throw error(`The AWS image url was found in the article. Access time to this URL is limited.
     Be sure to change this URL to a publicly available URL.`);
   }
