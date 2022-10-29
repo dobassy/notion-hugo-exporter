@@ -15,7 +15,7 @@ type imageMapParams = {
   filePath: string;
 };
 
-export const findByImageId = (
+export const findByImageId = async (
   imageId: string
 ): Promise<ModelImageMeta | null> => {
   return new Promise<ModelImageMeta | null>((resolve, reject) => {

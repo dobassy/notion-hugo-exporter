@@ -3,6 +3,7 @@ import {
   getImageFilename,
   getImageFullName,
   getImageUID,
+  isAwsImageUrlString,
 } from "./notionImage";
 
 const s3DummyUrl =
@@ -17,6 +18,19 @@ describe("isAwsImageUrl", () => {
   test("Matchs the No AWS url", () => {
     const url = "https://example.com/hello.png";
     const result = isAwsImageUrl(url);
+    expect(result).toBe(false);
+  });
+});
+
+describe("isAwsImageUrlString", () => {
+  test("Matchs the AWS url", () => {
+    const result = isAwsImageUrlString(s3DummyUrl);
+    expect(result).toBe(true);
+  });
+
+  test("Matchs the No AWS url", () => {
+    const url = "https://example.com/hello.png";
+    const result = isAwsImageUrlString(url);
     expect(result).toBe(false);
   });
 });
@@ -39,7 +53,7 @@ describe("getImageFilename", () => {
   });
 });
 
-describe("getImageFilename", () => {
+describe("getImageFullName", () => {
   test("Matchs full filename", () => {
     const result = getImageFullName(s3DummyUrl);
     expect(result).toEqual(

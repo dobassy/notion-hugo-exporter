@@ -1,5 +1,5 @@
 import { ensureDir, pathExists } from "fs-extra";
-import { createOrUpdateImageMap } from "../datastore/imageMap";
+import { createOrUpdateImageMap, findByImageId } from "../datastore/imageMap";
 import { log, LogTypes } from "../logger";
 import { getImageFilename, getImageFullName, getImageUID } from "./notionImage";
 
@@ -27,12 +27,27 @@ const determineDir = async (
   return `${config.saveAwsImageDirectory}/${frontMatter.sys.pageId}`;
 };
 
-const saveImageMap = async (
+export const saveImageMap = async (
   s3ImageUrl: string,
   filepath: string
 ): Promise<void> => {
   const id = getImageFullName(s3ImageUrl);
   await createOrUpdateImageMap(id, filepath);
+};
+
+const checkExistsImageMapAndFileCache = async (
+  s3url: string,
+  filepath: string
+): Promise<boolean> => {
+  const imageId = getImageFullName(s3url);
+
+  const idExists = !!(await findByImageId(imageId));
+  const fileExists = await pathExists(filepath);
+
+  if (idExists && fileExists) {
+    return true;
+  }
+  return false;
 };
 
 export const downloadImage = async (
@@ -45,7 +60,7 @@ export const downloadImage = async (
   }
   const filepath = await resolveFilePath(config, frontMatter, url);
 
-  if (await pathExists(filepath)) {
+  if (await checkExistsImageMapAndFileCache(url, filepath)) {
     log(
       `[Info] File already exists: Skipping download process: ${filepath}`,
       LogTypes.info

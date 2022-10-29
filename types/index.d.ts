@@ -14,6 +14,7 @@ type NotionHugoConfig = {
   fetchInterval: number;
   authorName?: string;
   s3ImageUrlWarningEnabled?: boolean;
+  s3ImageUrlReplaceEnabled?: boolean;
 };
 
 type ModelPageMeta = {

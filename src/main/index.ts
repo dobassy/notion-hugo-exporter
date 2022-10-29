@@ -11,11 +11,11 @@ import {
 } from "notion-to-md/build/types";
 import pLimit from "p-limit";
 import { createPage, findByPageId, updatePage } from "./datastore";
-import { createOrUpdateImageMap } from "./datastore/imageMap";
 import { isDateNewer } from "./helpers/date";
-import { getImageFilename, isAwsImageUrl } from "./helpers/notionImage";
+import { isAwsImageUrl } from "./helpers/notionImage";
 import { downloadImage } from "./helpers/donwload";
 import { includeAwsImageUrl } from "./helpers/validation";
+import { convertS3ImageUrl } from "./helpers/markdown";
 
 const checkFrontMatterContainRequiredValues = (
   frontMatter: frontMatter
@@ -174,11 +174,13 @@ const fetchBodyFromNotion = async (
   const mdblocks: MdBlock[] = await n2m.blocksToMarkdown(blocks);
 
   const mdString = n2m.toMarkdownString(mdblocks);
-  if (config.s3ImageUrlWarningEnabled && includeAwsImageUrl(mdString)) {
+
+  const markdownText = await convertS3ImageUrl(mdString);
+  if (config.s3ImageUrlWarningEnabled && includeAwsImageUrl(markdownText)) {
     throw error(`The AWS image url was found in the article. Access time to this URL is limited.
     Be sure to change this URL to a publicly available URL.`);
   }
-  return mdString;
+  return markdownText;
 };
 
 const fetchDataFromNotion = async (

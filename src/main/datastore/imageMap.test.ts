@@ -1,8 +1,8 @@
 import fs from "fs-extra";
 import {
-  createImageMap,
   updateImageMap,
   createOrUpdateImageMap,
+  findByImageId,
 } from "./imageMap";
 
 beforeAll(() => {
@@ -45,5 +45,24 @@ describe("updateImageMap", () => {
     expect(result.filePath).toBe(
       "/abcdefgh-1234-5678-abcd-123456789012/Untitled.png"
     );
+  });
+});
+
+describe("findByImageId", () => {
+  test("Normal process", async () => {
+    const id =
+      "secure.notion-static.com/12345678-1234-5678-abcd-123456789012/Untitled.png";
+    const result = await findByImageId(id);
+    //@ts-ignore
+    expect(result.filePath).toBe(
+      "/abcdefgh-1234-5678-abcd-123456789012/Untitled.png"
+    );
+  });
+  test("Normal process", async () => {
+    const id =
+      "null.notion-static.com/12345678-1234-5678-abcd-123456789012/Untitled.png";
+    const result = await findByImageId(id);
+    //@ts-ignore
+    expect(result).toBe(null);
   });
 });

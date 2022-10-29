@@ -10,6 +10,15 @@ export const isAwsImageUrl = (url: string): boolean => {
   return false;
 };
 
+export const isAwsImageUrlString = (string: string): boolean => {
+  const regHost = new RegExp(/amazonaws\.com/, "i");
+  const regPath = new RegExp(/notion-static\.com/, "i");
+  if (string.match(regHost) && string.match(regPath)) {
+    return true;
+  }
+  return false;
+};
+
 export const getImageFilename = (url: string): string => {
   const parser = new URL(url);
   const re = new RegExp(/([^\/]+\.(?:jpe?g|gif|png|webp|avif))/, "i");
