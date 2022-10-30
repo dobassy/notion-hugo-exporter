@@ -10,4 +10,10 @@ module.exports = {
   customTransformerCallback: null,
 
   authorName: "Overridden author",
+
+  // [Optional] setting.
+  customProperties: [
+    ["ToC", "boolean"],
+    ["AdditionalDescription", "text"],
+  ],
 };
