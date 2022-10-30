@@ -15,6 +15,7 @@ type NotionHugoConfig = {
   authorName?: string;
   s3ImageUrlWarningEnabled?: boolean;
   s3ImageUrlReplaceEnabled?: boolean;
+  customProperties?: string[][];
 };
 
 type ModelPageMeta = {

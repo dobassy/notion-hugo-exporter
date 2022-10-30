@@ -195,7 +195,11 @@ const fetchDataFromNotion = async (
     const options: { author: string } = {
       author: config.authorName ? config.authorName : "Writer",
     };
-    const frontMatter = await getPageFrontmatter(pageId, options);
+    const frontMatter = await getPageFrontmatter(
+      pageId,
+      options,
+      config.customProperties
+    );
     if (!checkFrontMatterContainRequiredValues(frontMatter)) {
       log(frontMatter);
       throw new Error(`frontMatter does not contain the required values.`);
