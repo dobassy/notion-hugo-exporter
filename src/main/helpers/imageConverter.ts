@@ -1,15 +1,15 @@
-import { pathExists } from "fs-extra";
+import { pathExists, remove } from "fs-extra";
 import { basename, dirname, extname } from "path";
 import imagemin from "imagemin";
 import imageminWebp from "imagemin-webp";
-import { log } from "../logger";
+import { log, LogTypes } from "../logger";
 
 export const convertWebp = async (
   originalImagePath: string
 ): Promise<string> => {
   const directory = dirname(originalImagePath);
-  const filename = basename(originalImagePath);
   const ext = extname(originalImagePath);
+  const filename = basename(originalImagePath, ext);
 
   if (ext === "webp") {
     log(`This file is already in webp format: ${originalImagePath}`);
@@ -25,9 +25,18 @@ export const convertWebp = async (
   const webpFilename = `${directory}/${filename}.webp`;
 
   if (await pathExists(webpFilename)) {
-    log(`Convert image successfully: ${webpFilename}`);
+    log(`Convert image successfully: ${webpFilename}: Remove original file.`);
+    try {
+      await remove(originalImagePath);
+    } catch (err) {
+      log(
+        `Failed to remove file: ${originalImagePath}: errors: ${err}`,
+        LogTypes.warn
+      );
+    }
     return webpFilename;
   } else {
+    log(`Failed to convert image: origin: ${originalImagePath}`);
     return "";
   }
 };
