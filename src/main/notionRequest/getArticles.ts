@@ -11,8 +11,6 @@ import {
   pageTags,
   pageCategory,
   pageSection,
-  pageToC,
-  pageLegacyAlert,
   pageSlug,
   pageUrl,
   pageDescription,
@@ -21,6 +19,7 @@ import {
   pageWeight,
   extractExternalUrl,
   hasPlainText,
+  customPropery,
 } from "./property";
 
 // Store all metadata in frontMatter
@@ -30,7 +29,8 @@ import {
 //            from the last update date of Hugo's page ('lastmod')
 export const getPageFrontmatter = async (
   pageId: string,
-  options: frontmatterOptions
+  options: frontmatterOptions,
+  customProperties: string[][] | undefined
 ): Promise<frontMatter> => {
   log(`[Info] [pageId: ${pageId}] Fetch from Notion API`);
   const pageMeta = await getArticle(pageId);
@@ -56,9 +56,8 @@ export const getPageFrontmatter = async (
     description: pageDescription(properties),
     tags: pageTags(properties),
     categories: pageCategory(properties),
-    toc: pageToC(properties),
     author: pageAuthor(properties, options),
-    legacy_alert: pageLegacyAlert(properties),
+    // legacy_alert: pageLegacyAlert(properties),
     draft: pageDraft(properties),
   };
 
@@ -99,6 +98,14 @@ export const getPageFrontmatter = async (
 
   if (pageWeight(properties)) {
     frontMatter["weight"] = pageWeight(properties);
+  }
+
+  if (customProperties) {
+    for (const customProperty of customProperties) {
+      const cProp = customProperty[0];
+      const cType = customProperty[1];
+      frontMatter[cProp] = customPropery(properties, cProp, cType);
+    }
   }
 
   return frontMatter as frontMatter;
