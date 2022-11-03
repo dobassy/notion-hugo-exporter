@@ -1,4 +1,5 @@
 import { ensureDir, pathExists } from "fs-extra";
+import { join } from "path";
 import { createOrUpdateImageMap, findByImageId } from "../datastore/imageMap";
 import { log, LogTypes } from "../logger";
 import { convertWebp } from "./imageConverter";
@@ -25,7 +26,10 @@ const determineDir = async (
   config: NotionHugoConfig,
   frontMatter: frontMatter
 ): Promise<string> => {
-  return `${config.saveAwsImageDirectory}/${frontMatter.sys.pageId}`;
+  if (!config.saveAwsImageDirectory)
+    throw new Error(`Unable to resolve save directory`);
+
+  return join(config.saveAwsImageDirectory, frontMatter.sys.pageId);
 };
 
 export const saveImageMap = async (

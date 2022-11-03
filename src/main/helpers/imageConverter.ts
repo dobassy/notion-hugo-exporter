@@ -1,5 +1,5 @@
 import { pathExists, remove } from "fs-extra";
-import { basename, dirname, extname } from "path";
+import { basename, dirname, extname, normalize } from "path";
 import imagemin from "imagemin";
 import imageminWebp from "imagemin-webp";
 import { log, LogTypes } from "../logger";
@@ -22,7 +22,7 @@ export const convertWebp = async (
     plugins: [imageminWebp({ quality: 75 })],
   });
 
-  const webpFilename = `${directory}/${filename}.webp`;
+  const webpFilename = normalize(`${directory}/${filename}.webp`);
 
   if (await pathExists(webpFilename)) {
     log(`Convert image successfully: ${webpFilename}: Remove original file.`);
