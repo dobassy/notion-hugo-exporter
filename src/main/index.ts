@@ -177,6 +177,7 @@ const fetchBodyFromNotion = async (
 
   const markdownText = await convertS3ImageUrl(mdString);
   if (config.s3ImageUrlWarningEnabled && includeAwsImageUrl(markdownText)) {
+    log(markdownText, LogTypes.debug);
     throw error(`The AWS image url was found in the article. Access time to this URL is limited.
     Be sure to change this URL to a publicly available URL.`);
   }

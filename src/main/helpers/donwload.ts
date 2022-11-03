@@ -84,12 +84,12 @@ export const downloadImage = async (
         );
         reject(null);
       })
-      .once("close", () => {
+      .once("close", async () => {
         log(
           `[Info] Attempts to download iamge successfully: ${filepath}`,
           LogTypes.info
         );
-        saveImageMap(url, filepath);
+        await saveImageMap(url, filepath);
         resolve(filepath);
       });
   });
