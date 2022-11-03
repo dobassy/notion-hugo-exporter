@@ -37,13 +37,15 @@ export const saveImageMap = async (
 };
 
 const checkExistsImageMapAndFileCache = async (
-  s3url: string,
-  filepath: string
+  s3url: string
 ): Promise<boolean> => {
   const imageId = getImageFullName(s3url);
 
-  const idExists = !!(await findByImageId(imageId));
-  const fileExists = await pathExists(filepath);
+  const imageMapModel = await findByImageId(imageId);
+  const idExists = !!imageMapModel;
+  if (!idExists) return false;
+
+  const fileExists = await pathExists(imageMapModel.filePath);
 
   if (idExists && fileExists) {
     return true;
@@ -61,7 +63,7 @@ export const downloadImage = async (
   }
   const filepath = await resolveFilePath(config, frontMatter, url);
 
-  if (await checkExistsImageMapAndFileCache(url, filepath)) {
+  if (await checkExistsImageMapAndFileCache(url)) {
     log(
       `[Info] File already exists: Skipping download process: ${filepath}`,
       LogTypes.info
