@@ -1,6 +1,7 @@
 import { ensureDir, pathExists } from "fs-extra";
 import { createOrUpdateImageMap, findByImageId } from "../datastore/imageMap";
 import { log, LogTypes } from "../logger";
+import { convertWebp } from "./imageConverter";
 import { getImageFilename, getImageFullName, getImageUID } from "./notionImage";
 
 const fs = require("fs");
@@ -89,8 +90,16 @@ export const downloadImage = async (
           `[Info] Attempts to download iamge successfully: ${filepath}`,
           LogTypes.info
         );
-        await saveImageMap(url, filepath);
-        resolve(filepath);
+
+        let publishImagePath: string;
+        if (config.s3ImageConvertToWebpEnalbed) {
+          const webpImage = await convertWebp(filepath);
+          publishImagePath = webpImage !== "" ? webpImage : filepath;
+        } else {
+          publishImagePath = filepath;
+        }
+        await saveImageMap(url, publishImagePath);
+        resolve(publishImagePath);
       });
   });
 };
