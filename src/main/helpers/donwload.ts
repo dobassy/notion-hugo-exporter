@@ -29,7 +29,9 @@ const determineDir = async (
   if (!config.saveAwsImageDirectory)
     throw new Error(`Unable to resolve save directory`);
 
-  return join(config.saveAwsImageDirectory, frontMatter.sys.pageId);
+  const m = frontMatter.date.match(/^(\d{4})/);
+  const year = m ? m[1] : ".";
+  return join(config.saveAwsImageDirectory, year, frontMatter.sys.pageId);
 };
 
 export const saveImageMap = async (
