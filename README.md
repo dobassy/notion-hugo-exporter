@@ -62,6 +62,7 @@ module.exports = {
   s3ImageUrlWarningEnabled: boolean,
   s3ImageUrlReplaceEnabled: boolean,
   s3ImageConvertToWebpEnalbed: boolean,
+  useOriginalConverter: boolean,
   saveAwsImageDirectory: null | string,
   downloadImageCallback: null | func(),
   customTransformerCallback: null | func(),
@@ -74,6 +75,7 @@ module.exports = {
 - `s3ImageUrlWarningEnabled`: Defaults to `true`. If the generated Markdown file contains an Amazon S3 URL, this tool will throw an error and terminate execution, but you can disable this behavior. It is highly recommended to enable it to avoid accidentally exposing your S3 URL. It should only be used for debugging.
 - `s3ImageUrlReplaceEnabled` (Experimental): Defaults to `false`. If your Notion content contains S3 URLs, replace them with local paths after downloading. This function attempts to reduce the time and effort required for image management.
 - `s3ImageConvertToWebpEnalbed`: Defaults to `false`. Converts downloaded images to Webp format.
+- `useOriginalConverter`: Defaults to `false`. See the [Adjust blank lines in paragraphs](#adjust-blank-lines-in-paragraphs) section for details.
 - `saveAwsImageDirectory`: Defaults to `null`. Images uploaded to Notion's pages are stored on Amazon S3, but the public URL has an 3600s limit. This is incompatible with generators that generate static HTML like Hugo. Therefore, you should upload it to some external storage and then embed the URL in the Notion's page. Enabling this option will make your work a little eaiser as the software will download the images.
 - `downloadImageCallback`: Defaults to `null`. If you want to use the downloaded image for addition processing, you can implement a callback. For example, an example implementation for uploading an image to WordPress (using REST API) can be found in `notion-hugo.config.02callback-sample.js`
 - `fetchInterval`: Only available in server mode. See "Watch mode (Server mode)" for more information. Defaults to `30`.
@@ -233,6 +235,24 @@ After transform output:
 ```
 
 Useful when converting to Hugo's shortcode.
+
+## Adjust blank lines in paragraphs
+
+Due to the specification change in [notion-to-md version 2.5.1](https://github.com/souvikinator/notion-to-md/releases/tag/v2.5.1), multiple line breaks have been inserted in paragraphs. It's a matter of taste, but we have customized it to handle the number of line breaks in paragraphs according to the conventional specifications. Future updates to the library may make this feature obsolete.
+
+If you want to use the original library specification, you can change the behavior by setting the setting to `true`.
+
+- `useOriginalConverter: true`
+
+See the image bellow for an example.
+
+Page content in Notion:
+
+![](docs/fig-conv1.webp)
+
+Output results when the setting is enabled (right side) and disabled (left side):
+
+![](docs/fig-conv2.webp)
 
 ## Watch mode (Server mode)
 

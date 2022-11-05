@@ -17,6 +17,7 @@ type NotionHugoConfig = {
   s3ImageUrlReplaceEnabled?: boolean;
   s3ImageConvertToWebpEnalbed?: boolean;
   customProperties?: string[][];
+  useOriginalConverter?: boolean;
 };
 
 type ModelPageMeta = {
