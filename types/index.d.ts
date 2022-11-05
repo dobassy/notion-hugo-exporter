@@ -13,6 +13,11 @@ type NotionHugoConfig = {
   customTransformerCallback?: (n2m: any) => void;
   fetchInterval: number;
   authorName?: string;
+  s3ImageUrlWarningEnabled?: boolean;
+  s3ImageUrlReplaceEnabled?: boolean;
+  s3ImageConvertToWebpEnalbed?: boolean;
+  customProperties?: string[][];
+  useOriginalConverter?: boolean;
 };
 
 type ModelPageMeta = {
@@ -20,6 +25,11 @@ type ModelPageMeta = {
   createdTime: string;
   lastEditedTime: string;
   _id: string;
+};
+
+type ModelImageMeta = {
+  imageId: string;
+  filePath: string;
 };
 
 type sys = {

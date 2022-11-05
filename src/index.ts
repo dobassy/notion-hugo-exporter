@@ -43,6 +43,14 @@ const initialize = async (): Promise<unknown> => {
 
     log(`[Info] Exported directory: ${config.directory}`, LogTypes.info);
 
+    if (config.s3ImageUrlWarningEnabled === undefined) {
+      log(
+        `[Info] Missing 's3ImageUrlWarningEnabled' param: Set default value 'true'`,
+        LogTypes.info
+      );
+      config.s3ImageUrlWarningEnabled = true;
+    }
+
     if (argv.clean) {
       log("Not implemented yet");
       return null;

@@ -3,6 +3,7 @@ import { error, log, LogTypes } from "./logger";
 import { getBlocks, getPageFrontmatter } from "./notionRequest/getArticles";
 import { getPublishedArticles } from "./notionRequest/getDatabases";
 import fs from "fs-extra";
+import { NotionToMarkdown } from "notion-to-md/build/notion-to-md";
 import { NotionToMarkdownCustom } from "./notion-to-md/notion-to-md";
 import notion from "./notionRequest/client";
 import {
@@ -12,8 +13,10 @@ import {
 import pLimit from "p-limit";
 import { createPage, findByPageId, updatePage } from "./datastore";
 import { isDateNewer } from "./helpers/date";
-import { isAwsImageUrl } from "./helpers/validation";
+import { isAwsImageUrl } from "./helpers/notionImage";
 import { downloadImage } from "./helpers/donwload";
+import { includeAwsImageUrl } from "./helpers/validation";
+import { convertS3ImageUrl } from "./helpers/markdown";
 
 const checkFrontMatterContainRequiredValues = (
   frontMatter: frontMatter
@@ -100,6 +103,26 @@ const validateAwsUrlIncluded = async (blocks: any[]): Promise<string[]> => {
   return urls;
 };
 
+const executeDownloadImageCallbacks = async (
+  callbackTasks: any[],
+  frontMatter: frontMatter
+): Promise<void> => {
+  if (callbackTasks.length > 0) {
+    try {
+      await Promise.all(callbackTasks);
+
+      log(
+        `[Info] [pageId: ${frontMatter.sys.pageId}] User defined callback is completed`,
+        LogTypes.info
+      );
+    } catch (error) {
+      log("[Error] Error occurred in a user defined callback", LogTypes.error);
+      // @ts-ignore
+      throw new Error(error);
+    }
+  }
+};
+
 const fetchBodyFromNotion = async (
   config: NotionHugoConfig,
   frontMatter: frontMatter,
@@ -125,6 +148,9 @@ const fetchBodyFromNotion = async (
       for (const imageUrl of awsUrls) {
         log(`${imageUrl} - [PageTitle: ${frontMatter.title}]`, LogTypes.warn);
         const filepath = await downloadImage(config, frontMatter, imageUrl);
+
+        // If a callback after image download is set in the configuration file,
+        // Add to Queue to execute Callback
         if (
           typeof config.downloadImageCallback === "function" &&
           filepath &&
@@ -137,36 +163,31 @@ const fetchBodyFromNotion = async (
         }
       }
 
-      if (callbackTasks.length > 0) {
-        try {
-          await Promise.all(callbackTasks);
-
-          log(
-            `[Info] [pageId: ${frontMatter.sys.pageId}] User defined callback is completed`,
-            LogTypes.info
-          );
-        } catch (error) {
-          log(
-            "[Error] Error occurred in a user defined callback",
-            LogTypes.error
-          );
-          // @ts-ignore
-          throw new Error(error);
-        }
-      }
-      throw error(`The AWS image url was found in the article. Access time to this URL is limited.
-      Be sure to change this URL to a publicly available URL.`);
+      executeDownloadImageCallbacks(callbackTasks, frontMatter);
     }
   }
 
-  // Convert to Markdown using npm 'github souvikinator/notion-to-md'
-  const n2m = new NotionToMarkdownCustom({ notionClient: notion });
+  let n2m: NotionToMarkdown | NotionToMarkdownCustom;
+  if (config.useOriginalConverter) {
+    // Convert to Markdown using npm 'github souvikinator/notion-to-md'
+    n2m = new NotionToMarkdown({ notionClient: notion });
+  } else {
+    n2m = new NotionToMarkdownCustom({ notionClient: notion });
+  }
   if (typeof config.customTransformerCallback === "function") {
     config.customTransformerCallback(n2m);
   }
   const mdblocks: MdBlock[] = await n2m.blocksToMarkdown(blocks);
+
   const mdString = n2m.toMarkdownString(mdblocks);
-  return mdString;
+
+  const markdownText = await convertS3ImageUrl(mdString);
+  if (config.s3ImageUrlWarningEnabled && includeAwsImageUrl(markdownText)) {
+    log(markdownText, LogTypes.debug);
+    throw error(`The AWS image url was found in the article. Access time to this URL is limited.
+    Be sure to change this URL to a publicly available URL.`);
+  }
+  return markdownText;
 };
 
 const fetchDataFromNotion = async (
@@ -181,7 +202,11 @@ const fetchDataFromNotion = async (
     const options: { author: string } = {
       author: config.authorName ? config.authorName : "Writer",
     };
-    const frontMatter = await getPageFrontmatter(pageId, options);
+    const frontMatter = await getPageFrontmatter(
+      pageId,
+      options,
+      config.customProperties
+    );
     if (!checkFrontMatterContainRequiredValues(frontMatter)) {
       log(frontMatter);
       throw new Error(`frontMatter does not contain the required values.`);

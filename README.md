@@ -59,6 +59,10 @@ module.exports = {
   directory: string,
   concurrency: number,
   authorName: string,
+  s3ImageUrlWarningEnabled: boolean,
+  s3ImageUrlReplaceEnabled: boolean,
+  s3ImageConvertToWebpEnalbed: boolean,
+  useOriginalConverter: boolean,
   saveAwsImageDirectory: null | string,
   downloadImageCallback: null | func(),
   customTransformerCallback: null | func(),
@@ -67,6 +71,11 @@ module.exports = {
 
 - `directory`: (Required) Directory for exporting pages. A directory is created for each section, but it is basically flat.
 - `concurrency`: Defaults to `5`.
+- `authorName`: You can uniformly set the author of the article.
+- `s3ImageUrlWarningEnabled`: Defaults to `true`. If the generated Markdown file contains an Amazon S3 URL, this tool will throw an error and terminate execution, but you can disable this behavior. It is highly recommended to enable it to avoid accidentally exposing your S3 URL. It should only be used for debugging.
+- `s3ImageUrlReplaceEnabled` (Experimental): Defaults to `false`. If your Notion content contains S3 URLs, replace them with local paths after downloading. This function attempts to reduce the time and effort required for image management.
+- `s3ImageConvertToWebpEnalbed`: Defaults to `false`. Converts downloaded images to Webp format.
+- `useOriginalConverter`: Defaults to `false`. See the [Adjust blank lines in paragraphs](#adjust-blank-lines-in-paragraphs) section for details.
 - `saveAwsImageDirectory`: Defaults to `null`. Images uploaded to Notion's pages are stored on Amazon S3, but the public URL has an 3600s limit. This is incompatible with generators that generate static HTML like Hugo. Therefore, you should upload it to some external storage and then embed the URL in the Notion's page. Enabling this option will make your work a little eaiser as the software will download the images.
 - `downloadImageCallback`: Defaults to `null`. If you want to use the downloaded image for addition processing, you can implement a callback. For example, an example implementation for uploading an image to WordPress (using REST API) can be found in `notion-hugo.config.02callback-sample.js`
 - `fetchInterval`: Only available in server mode. See "Watch mode (Server mode)" for more information. Defaults to `30`.
@@ -76,26 +85,25 @@ module.exports = {
 
 Notion database property keys must be:
 
-| Property Name | Type                 | Required                | Default value |
-| ------------- | -------------------- | ----------------------- | ------------- |
-| isPublished   | Boolean              | ✅                      |
-| Category      | Select               | ✅                      |
-| Tags          | multi_select         | ✅                      |
-| PublishedAt   | date                 | ✅                      |
-| UpdatedAt     | date                 | ✅                      |
-| Url           | Text                 | ✅ (Either Url or Slug) |
-| Slug          | Text                 | ✅ (Either Url or Slug) |
-| LegacyAlert   | Boolean              | ✅                      |
-| Description   | Text                 | ✅                      |
-| Image         | Image (external url) | ✅                      |
-| ToC           | Boolean              | ✅                      |
-| Section       | Select               | ✅                      |
-| Author        | Text or Select       |                         | "Writer"      |
-| isDraft       | Boolean              |                         | false         |
-| filepath      | Text                 |                         |               |
+| Property Name   | Type                 | Required                                 | Default value |
+| --------------- | -------------------- | ---------------------------------------- | ------------- |
+| isPublished     | Boolean              | ✅                                       |
+| Category        | Select               | ✅                                       |
+| Tags            | multi_select         | ✅                                       |
+| PublishedAt     | date                 | ✅                                       |
+| UpdatedAt       | date                 | ✅                                       |
+| Url             | Text                 | ✅ (Either Url or Slug)                  |
+| Slug            | Text                 | ✅ (Either Url or Slug)                  |
+| ~~LegacyAlert~~ | Boolean              | (Removed mandatory constraint from v0.5) |
+| Description     | Text                 | ✅                                       |
+| Image           | Image (external url) | ✅                                       |
+| ~~ToC~~         | Boolean              | (Removed mandatory constraint from v0.5) |
+| Section         | Select               | ✅                                       |
+| Author          | Text or Select       |                                          | "Writer"      |
+| isDraft         | Boolean              |                                          | false         |
+| filepath        | Text                 |                                          |               |
 
-Currently, these keys must be set manually.
-
+- Currently, these keys **must be set manually**.
 - `filepath` property: Normally, the filename is automatically generated from Section and PageID (generated by Notion), but it can be overriden by specifying the absolute path.
 
 #### Optional Properties.
@@ -106,6 +114,26 @@ Currently, these keys must be set manually.
 | weight        | Number |          |               |
 
 These properties will be used in [Docsy](https://www.docsy.dev/) theme.
+
+#### Custom (User defined) Properties.
+
+You can set any number of options that will be exported to Frontmatter.
+
+```js
+// array[0]: property name in Notion
+// array[1]: Types identified when exporting to Frontmatter (Markdown)
+customProperties: [
+  ["ToC", "boolean"],
+  ["AdditionalDescription", "text"],
+],
+```
+
+In the above example:
+
+- A checkbox property set with the name 'ToC' in Notion recognizes it as a Boolean
+- A text propety set with the name 'AdditionalDescription' in Notion recognizes it as a Text (Stgin)
+
+Currently, type (array[1]) can be set to two types: `boolean` or `text`
 
 ### Step 5. Run
 
@@ -207,6 +235,24 @@ After transform output:
 ```
 
 Useful when converting to Hugo's shortcode.
+
+## Adjust blank lines in paragraphs
+
+Due to the specification change in [notion-to-md version 2.5.1](https://github.com/souvikinator/notion-to-md/releases/tag/v2.5.1), multiple line breaks have been inserted in paragraphs. It's a matter of taste, but we have customized it to handle the number of line breaks in paragraphs according to the conventional specifications. Future updates to the library may make this feature obsolete.
+
+If you want to use the original library specification, you can change the behavior by setting the setting to `true`.
+
+- `useOriginalConverter: true`
+
+See the image bellow for an example.
+
+Page content in Notion:
+
+![](docs/fig-conv1.webp)
+
+Output results when the setting is enabled (right side) and disabled (left side):
+
+![](docs/fig-conv2.webp)
 
 ## Watch mode (Server mode)
 

@@ -1,26 +1,62 @@
-import { ensureDir } from "fs-extra";
+import { ensureDir, pathExists } from "fs-extra";
+import { join } from "path";
+import { createOrUpdateImageMap, findByImageId } from "../datastore/imageMap";
 import { log, LogTypes } from "../logger";
-import { getImageFilename } from "./validation";
+import { convertWebp } from "./imageConverter";
+import { getImageFilename, getImageFullName, getImageUID } from "./notionImage";
 
 const fs = require("fs");
 const Axios = require("axios");
 
-const resolveFilePath = (
+const resolveFilePath = async (
   config: NotionHugoConfig,
   frontMatter: frontMatter,
   url: string
-): string => {
-  const timestamp = Date.now();
+): Promise<string> => {
+  const directory = await determineDir(config, frontMatter);
+  await ensureDir(directory);
 
   const iamgeFileName = getImageFilename(url);
-
-  const directory = config.saveAwsImageDirectory;
-  const filename = `${frontMatter.sys.pageId}-${timestamp}-${iamgeFileName}`;
+  const imageUID = getImageUID(url);
+  const filename = `${imageUID}-${iamgeFileName}`;
   return `${directory}/${filename}`;
 };
 
-const createDirectory = async (directoryPath: string): Promise<void> => {
-  await ensureDir(directoryPath);
+const determineDir = async (
+  config: NotionHugoConfig,
+  frontMatter: frontMatter
+): Promise<string> => {
+  if (!config.saveAwsImageDirectory)
+    throw new Error(`Unable to resolve save directory`);
+
+  const m = frontMatter.date.match(/^(\d{4})/);
+  const year = m ? m[1] : ".";
+  return join(config.saveAwsImageDirectory, year, frontMatter.sys.pageId);
+};
+
+export const saveImageMap = async (
+  s3ImageUrl: string,
+  filepath: string
+): Promise<void> => {
+  const id = getImageFullName(s3ImageUrl);
+  await createOrUpdateImageMap(id, filepath);
+};
+
+const checkExistsImageMapAndFileCache = async (
+  s3url: string
+): Promise<boolean> => {
+  const imageId = getImageFullName(s3url);
+
+  const imageMapModel = await findByImageId(imageId);
+  const idExists = !!imageMapModel;
+  if (!idExists) return false;
+
+  const fileExists = await pathExists(imageMapModel.filePath);
+
+  if (idExists && fileExists) {
+    return true;
+  }
+  return false;
 };
 
 export const downloadImage = async (
@@ -31,8 +67,17 @@ export const downloadImage = async (
   if (!config.saveAwsImageDirectory) {
     return null;
   }
-  await createDirectory(config.saveAwsImageDirectory);
-  const filepath = resolveFilePath(config, frontMatter, url);
+  const filepath = await resolveFilePath(config, frontMatter, url);
+
+  if (await checkExistsImageMapAndFileCache(url)) {
+    log(
+      `[Info] File already exists: Skipping download process: ${filepath}`,
+      LogTypes.info
+    );
+
+    return filepath;
+  }
+
   const response = await Axios({
     url,
     method: "GET",
@@ -43,14 +88,26 @@ export const downloadImage = async (
       .pipe(fs.createWriteStream(filepath))
       .on("error", (err: any) => {
         log(
-          `[Error] Appments to download iamge: ${filepath}: ${err}`,
+          `[Error] Attempts to download iamge: ${filepath}: ${err}`,
           LogTypes.error
         );
         reject(null);
       })
-      .once("close", () => {
-        log(`[Info] Appments to download iamge: ${filepath}`, LogTypes.info);
-        resolve(filepath);
+      .once("close", async () => {
+        log(
+          `[Info] Attempts to download iamge successfully: ${filepath}`,
+          LogTypes.info
+        );
+
+        let publishImagePath: string;
+        if (config.s3ImageConvertToWebpEnalbed) {
+          const webpImage = await convertWebp(filepath);
+          publishImagePath = webpImage !== "" ? webpImage : filepath;
+        } else {
+          publishImagePath = filepath;
+        }
+        await saveImageMap(url, publishImagePath);
+        resolve(publishImagePath);
       });
   });
 };

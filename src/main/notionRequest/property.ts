@@ -17,7 +17,7 @@ export const pageAuthor = (prop: any, options: frontmatterOptions): string => {
 };
 export const pageDraft = (prop: any): boolean => {
   if (prop["isDraft"] !== undefined) {
-    return isChecked(prop["isDraft"]);
+    return booleanProperty(prop["isDraft"]);
   }
   return false;
 };
@@ -41,12 +41,7 @@ export const pageCategory = (prop: any): string[] => {
 export const pageSection = (prop: any): string => {
   return extractPlainText(prop["Section"]);
 };
-export const pageToC = (prop: any): boolean => {
-  return isChecked(prop["ToC"]);
-};
-export const pageLegacyAlert = (prop: any): boolean => {
-  return isChecked(prop["LegacyAlert"]);
-};
+
 export const pageSlug = (prop: any): string => {
   const slug = extractPlainText(prop["Slug"]);
   return urlize(slug);
@@ -135,9 +130,33 @@ export const hasPlainText = (prop: any): boolean => {
   }
   return false;
 };
-const isChecked = (prop: any): boolean => {
+
+export const textProperty = (prop: any): string => {
+  return extractPlainText(prop);
+};
+
+export const booleanProperty = (prop: any): boolean => {
   if (prop["type"] === "checkbox") {
     return prop["checkbox"];
   }
   return false;
+};
+
+export const customPropery = (
+  prop: any,
+  propertyKey: string,
+  propertyType: string
+): string | boolean | undefined => {
+  try {
+    if (propertyType === "boolean") {
+      return booleanProperty(prop[propertyKey]);
+    } else if (propertyType === "text") {
+      return textProperty(prop[propertyKey]);
+    }
+  } catch (error) {
+    throw new Error(
+      `[Fatal] Failed to get property: Probably the property name '${propertyKey}' does not exists: error message: ${error}`
+    );
+  }
+  return undefined;
 };
