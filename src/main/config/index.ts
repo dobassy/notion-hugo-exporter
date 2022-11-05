@@ -25,8 +25,6 @@ const loadJavascriptConfigFile = (
   // eslint-disable-next-line global-require
   log(`[Info] Appempts to load configuration file: ${filePath}`, LogTypes.info);
   let configObject = require(filePath);
-  // WARN: Webpackでやるときはこの記載が必要（↓）
-  // let configObject = require("../../../notion-hugo.config.js");
   if (configObject && typeof configObject === "object") {
     return configObject;
   }
