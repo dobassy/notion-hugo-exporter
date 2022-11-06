@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  script:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: local/notion-hugo-exporter
+    platform: linux/x86_64
+    environment:
+      NOTION_BLOG_DATABASE_ID: ${NOTION_BLOG_DATABASE_ID}
+      NOTION_TOKEN: ${NOTION_TOKEN}
