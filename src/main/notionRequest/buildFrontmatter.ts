@@ -1,7 +1,4 @@
-import { log, LogTypes } from "../logger";
-import notion from "./client";
-import type { ListBlockChildrenResponse } from "@notionhq/client/build/src/api-endpoints.d";
-import { ListBlockChildrenResponseResults } from "notion-to-md/build/types";
+import { getArticle } from "./pageClient";
 import {
   pageTitle,
   pageAuthor,
@@ -21,6 +18,7 @@ import {
   hasPlainText,
   customPropery,
 } from "./property";
+import { log, LogTypes } from "../logger";
 
 // Store all metadata in frontMatter
 // Values that are not directly needed to create Hugo pages are stored in the
@@ -109,32 +107,4 @@ export const getPageFrontmatter = async (
   }
 
   return frontMatter as frontMatter;
-};
-
-const getArticle = async (pageId: string) => {
-  const response = await notion.pages.retrieve({ page_id: pageId });
-  return response;
-};
-
-// Expecting to use the "Notion to Markdown" package
-export const getBlocks = async (
-  blockId: string
-): Promise<ListBlockChildrenResponseResults> => {
-  const blocks: ListBlockChildrenResponseResults = [];
-  let cursor: unknown;
-  while (true) {
-    const response = (await notion.blocks.children.list({
-      start_cursor: cursor,
-      block_id: blockId,
-    })) as ListBlockChildrenResponse;
-    const results = response.results;
-    const next_cursor = response.next_cursor;
-
-    blocks.push(...results);
-    if (!next_cursor) {
-      break;
-    }
-    cursor = next_cursor;
-  }
-  return blocks;
 };
