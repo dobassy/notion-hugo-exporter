@@ -1,0 +1,22 @@
+name: ESLint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  eslint:
+    name: eslint
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
+
+      - run: npm ci
+      - run: npm run lint:eslint
