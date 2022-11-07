@@ -1,22 +1,22 @@
 {
   "name": "notion-to-hugo-expoter",
   "version": "0.1.0",
-  "description": "Minimal module for exporting Notion pages to Markdown files",
-  "main": "index.js",
   "private": true,
-  "scripts": {
-    "build": "tsc --project tsconfig.json",
-    "format": "sort-package-json package.json && prettier  \"**/*\" --write --ignore-unknown",
-    "watch": "tsc --project tsconfig.json --watch",
-    "lint:eslint": "eslint src --ext .js,.ts",
-    "prepare": "npm run build",
-    "test": "jest"
-  },
+  "description": "Minimal module for exporting Notion pages to Markdown files",
+  "license": "MIT",
+  "author": "",
+  "main": "index.js",
   "bin": {
     "notion-hugo": "./bin/notion-hugo.js"
   },
-  "author": "",
-  "license": "MIT",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "format": "sort-package-json package.json && prettier  \"**/*\" --write --ignore-unknown",
+    "lint:eslint": "eslint src --ext .js,.ts",
+    "prepare": "npm run build",
+    "test": "jest",
+    "watch": "tsc --project tsconfig.json --watch"
+  },
   "dependencies": {
     "@notionhq/client": "^1.0.4",
     "@seald-io/nedb": "^3.1.0",
