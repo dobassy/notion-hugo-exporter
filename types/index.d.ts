@@ -40,47 +40,24 @@ type sys = {
   propFilepath?: string;
 };
 
-type frontMatter =
-  | {
-      sys: sys;
-      date: string;
-      title: string;
-      description: string;
-      tags: string[];
-      categories: string[];
-      toc: boolean;
-      author: string;
-      legacy_alert: boolean;
-      draft: boolean;
-      url: string;
-      slug?: string;
-      lastmod?: string;
-      featured_image?: string;
-      images?: string[];
-      section?: string;
-      linkTitle?: string;
-      weight?: number;
-    }
-  | {
-      sys: sys;
-      date: string;
-      title: string;
-      description: string;
-      tags: string[];
-      categories: string[];
-      toc: boolean;
-      author: string;
-      legacy_alert: boolean;
-      draft: boolean;
-      url?: string;
-      slug: string;
-      lastmod?: string;
-      featured_image?: string;
-      images?: string[];
-      section?: string;
-      linkTitle?: string;
-      weight?: number;
-    };
+type frontMatter = {
+  sys: sys;
+  date: string;
+  title: string;
+  description: string;
+  tags: string[];
+  categories: string[];
+  author: string;
+  draft: boolean;
+  url?: string;
+  slug?: string;
+  lastmod?: string;
+  featured_image?: string;
+  images?: string[];
+  section?: string;
+  linkTitle?: string;
+  weight?: number;
+};
 
 type frontmatterOptions = {
   author: string;
