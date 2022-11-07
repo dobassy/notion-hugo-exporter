@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* ================================================================================
   This code is based on Notion SDK example.
   https://github.com/makenotion/notion-sdk-js/blob/main/examples/database-email-update/index.js.
@@ -107,3 +108,4 @@ export const runServer = async (
     }, fetchInterval);
   });
 };
+/* eslint-enable */

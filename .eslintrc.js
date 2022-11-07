@@ -4,35 +4,27 @@ module.exports = {
     es2021: true,
   },
   extends: [
-    "plugin:react/recommended",
-    "airbnb",
-    "airbnb/hooks",
+    "eslint:recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "prettier",
   ],
+  ignorePatterns: ["build"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
     },
-    ecmaVersion: 12,
+    ecmaVersion: 2021,
     sourceType: "module",
-    tsconfigRootDir: __dirname,
-    project: ["./tsconfig.eslint.json"],
+    project: "./tsconfig.json",
   },
-  plugins: ["react", "@typescript-eslint"],
-  settings: {
-    "import/resolver": {
-      node: {
-        paths: ["src"],
-        extensions: [".js", ".jsx", ".ts", ".tsx", ".d.ts"],
-      },
-    },
-  },
+  plugins: ["@typescript-eslint"],
   rules: {
-    "no-use-before-define": "off",
-    "@typescript-eslint/no-use-before-define": ["error"],
+    "@typescript-eslint/no-use-before-define": ["error", { variables: false }],
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/ban-ts-ignore": "off",
     "import/extensions": [
       "error",
       "ignorePackages",
@@ -43,9 +35,12 @@ module.exports = {
         tsx: "never",
       },
     ],
-    "react/jsx-filename-extension": [
-      "error",
-      { extensions: [".js", ".jsx", ".ts", ".tsx"] },
-    ],
+  },
+  settings: {
+    "import/resolver:": {
+      typescript: true,
+      node: true,
+    },
+    "import/extensions": [".js", ".ts"],
   },
 };

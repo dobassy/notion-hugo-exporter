@@ -20,7 +20,7 @@ export class NotionToMarkdownCustom extends NotionToMarkdown {
    * @param {number} nestingLevel - Defines max depth of nesting
    * @returns {string} - Returns markdown string
    */
-  toMarkdownString(mdBlocks: MdBlock[] = [], nestingLevel: number = 0): string {
+  toMarkdownString(mdBlocks: MdBlock[] = [], nestingLevel = 0): string {
     let mdString = "";
 
     // Insert a blank line when List starts

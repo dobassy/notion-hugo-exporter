@@ -19,6 +19,7 @@ import { downloadImage } from "./helpers/donwload";
 import { includeAwsImageUrl } from "./helpers/validation";
 import { convertS3ImageUrl } from "./helpers/markdown";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const checkFrontMatterContainRequiredValues = (
   frontMatter: frontMatter
 ): boolean => {
@@ -86,7 +87,7 @@ const notionImageBlockUrl = (block: any): string => {
 const validateAwsUrlIncluded = async (blocks: any[]): Promise<string[]> => {
   const urls: any = [];
   const extractUrl = async (blocks: any) => {
-    for (let block of blocks) {
+    for (const block of blocks) {
       if (block["has_children"]) {
         const childBlocks = await getBlocks(block["id"]);
         await extractUrl(childBlocks);
