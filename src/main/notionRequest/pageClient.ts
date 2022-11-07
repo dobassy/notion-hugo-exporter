@@ -12,7 +12,9 @@ export const getBlocks = async (
   blockId: string
 ): Promise<ListBlockChildrenResponseResults> => {
   const blocks: ListBlockChildrenResponseResults = [];
-  let cursor: unknown;
+  let cursor: string | undefined;
+
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const response = (await notion.blocks.children.list({
       start_cursor: cursor,

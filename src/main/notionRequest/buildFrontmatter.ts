@@ -33,6 +33,8 @@ export const getPageFrontmatter = async (
 ): Promise<frontMatter> => {
   log(`[Info] [pageId: ${pageId}] Fetch from Notion API`);
   const pageMeta = await getArticle(pageId);
+
+  //@ts-ignore
   if (pageMeta["archive"]) {
     log(pageMeta);
     throw new Error(
@@ -40,6 +42,7 @@ export const getPageFrontmatter = async (
       Make sure the publishing settings for this article are correct.`
     );
   }
+  //@ts-ignore
   const properties = pageMeta["properties"];
 
   log(properties, LogTypes.debug);
@@ -49,10 +52,13 @@ export const getPageFrontmatter = async (
     ? setTimeMidnight(date, options.utcOffset)
     : date;
 
-  let frontMatter: any = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const frontMatter: any = {
     sys: {
       pageId: pageId,
+      //@ts-ignore
       createdTime: pageMeta["created_time"],
+      //@ts-ignore
       lastEditedTime: pageMeta["last_edited_time"],
     },
     title: pageTitle(properties),
