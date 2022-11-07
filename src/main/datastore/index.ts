@@ -42,7 +42,7 @@ export const createPage = async (sys: sys): Promise<ModelPageMeta | null> => {
   }
 
   return new Promise<ModelPageMeta | null>(async (resolve, reject) => {
-    db.insert(sys, (err, doc: sys) => {
+    db.insert(sys, (err, _doc: sys) => {
       if (err) {
         return reject(err);
       }

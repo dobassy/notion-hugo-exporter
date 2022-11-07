@@ -1,5 +1,6 @@
 import { urlize } from "../helpers/string";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const pageTitle = (prop: any): string => {
   return extractPlainText(prop["Name"]);
 };
@@ -160,3 +161,4 @@ export const customPropery = (
   }
   return undefined;
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */

@@ -1,5 +1,5 @@
 import path from "path";
-import { pathExists, readFile } from "fs-extra";
+import { pathExists } from "fs-extra";
 import { log, LogTypes } from "../logger";
 
 /**
@@ -24,7 +24,9 @@ const loadJavascriptConfigFile = (
 ): NotionHugoConfig | false => {
   // eslint-disable-next-line global-require
   log(`[Info] Appempts to load configuration file: ${filePath}`, LogTypes.info);
-  let configObject = require(filePath);
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const configObject = require(filePath);
   if (configObject && typeof configObject === "object") {
     return configObject;
   }
@@ -36,7 +38,7 @@ const loadJavascriptConfigFile = (
  */
 const loadFile = async (
   rootDir = ".",
-  fileName: string = ""
+  fileName = ""
 ): Promise<NotionHugoConfig | false> => {
   const filePath = path.resolve(rootDir, fileName);
 

@@ -19,6 +19,7 @@ export const findByImageId = async (
   imageId: string
 ): Promise<ModelImageMeta | null> => {
   return new Promise<ModelImageMeta | null>((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     db.find({ imageId: imageId }, (err: any, docs: ModelImageMeta[]) => {
       if (err) {
         return reject(new Error(err));

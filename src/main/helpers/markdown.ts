@@ -10,7 +10,7 @@ const replaceS3ImageUrl = async (text: string): Promise<string> => {
   // expected for: ![](https://s3...)
   //             : ![any title](https://s3...)
   const markdownImageTagUrlPattern = new RegExp(
-    /\!\[.*\]\((https:\/\/s3[^\)].+?)\)/
+    /!\[.*\]\((https:\/\/s3[^)].+?)\)/
   );
   const m = text.match(markdownImageTagUrlPattern);
 
@@ -24,7 +24,7 @@ const replaceS3ImageUrl = async (text: string): Promise<string> => {
 
     const publicFilepath = publicPath(fileCache);
 
-    const urlPatternS3Image = new RegExp(/https:\/\/s3[^\)]+/);
+    const urlPatternS3Image = new RegExp(/https:\/\/s3[^)]+/);
     const markdownNewLine = markdownOriginalLine.replace(
       urlPatternS3Image,
       publicFilepath
