@@ -3,7 +3,7 @@
   https://github.com/makenotion/notion-sdk-js/blob/main/examples/database-email-update/index.js.
 ================================================================================ */
 
-import { getPublishedArticles } from "../main/notionRequest/getDatabases";
+import { getPublishedArticles } from "../main/notionRequest/databaseClient";
 import { fetchDataFromNotion } from "../main";
 
 const taskPageIdToStatusMap: any = {};

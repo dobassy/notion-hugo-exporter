@@ -1,7 +1,8 @@
 import createFile from "./createFile";
 import { error, log, LogTypes } from "./logger";
-import { getBlocks, getPageFrontmatter } from "./notionRequest/getArticles";
-import { getPublishedArticles } from "./notionRequest/getDatabases";
+import { getBlocks } from "./notionRequest/pageClient";
+import { getPublishedArticles } from "./notionRequest/databaseClient";
+import { getPageFrontmatter } from "./notionRequest/buildFrontmatter";
 import fs from "fs-extra";
 import { NotionToMarkdown } from "notion-to-md/build/notion-to-md";
 import { NotionToMarkdownCustom } from "./notion-to-md/notion-to-md";
@@ -199,8 +200,9 @@ const fetchDataFromNotion = async (
   const updatedMessages: string[] = [];
 
   const convertAndWriteMarkdown = async (pageId: string): Promise<void> => {
-    const options: { author: string } = {
+    const options: frontmatterOptions = {
       author: config.authorName ? config.authorName : "Writer",
+      utcOffset: config.utcOffset ? config.utcOffset : "",
     };
     const frontMatter = await getPageFrontmatter(
       pageId,
