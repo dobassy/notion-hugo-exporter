@@ -10,28 +10,31 @@ const db = new Nedb({
   corruptAlertThreshold: 0,
 });
 
-export const findByPageId = (pageId: string): Promise<ModelPageMeta | null> => {
-  return new Promise<ModelPageMeta | null>((resolve, reject) => {
-    db.find({ pageId: pageId }, (err: any, docs: ModelPageMeta[]) => {
-      if (err) {
-        return reject(new Error(err));
-      }
+export const findByPageId = async (
+  pageId: string
+): Promise<ModelPageMeta | null> => {
+  let docs: ModelPageMeta[];
+  try {
+    docs = await db.findAsync({ pageId: pageId });
+  } catch (error) {
+    throw new Error(
+      `Unexpected error occurred in findAsync: pageCache: ${error}`
+    );
+  }
 
-      if (docs && docs.length === 0) {
-        return resolve(null);
-      }
+  if (docs && docs.length === 0) {
+    return null;
+  }
 
-      if (docs && docs.length > 1) {
-        log(
-          "More than 1 record was found. Check the database unexpectedly.",
-          LogTypes.error
-        );
-        reject("Invalid query");
-      }
+  if (docs && docs.length > 1) {
+    log(
+      "More than 1 record was found. Check the database unexpectedly.",
+      LogTypes.error
+    );
+    throw new Error("Invalid query");
+  }
 
-      return resolve(docs[0]);
-    });
-  });
+  return docs[0];
 };
 
 export const createPage = async (sys: sys): Promise<ModelPageMeta | null> => {
@@ -41,16 +44,15 @@ export const createPage = async (sys: sys): Promise<ModelPageMeta | null> => {
     return null;
   }
 
-  return new Promise<ModelPageMeta | null>(async (resolve, reject) => {
-    db.insert(sys, (err, _doc: sys) => {
-      if (err) {
-        return reject(err);
-      }
-    });
+  try {
+    await db.insertAsync(sys);
+  } catch (error) {
+    throw new Error(
+      `Unexpected error occurred in findAsync: pageCache: ${error}`
+    );
+  }
 
-    const modelPage = await findByPageId(sys.pageId);
-    resolve(modelPage);
-  });
+  return await findByPageId(sys.pageId);
 };
 
 export const updatePage = async (
@@ -73,41 +75,38 @@ export const updatePage = async (
     upsert: false,
   };
 
-  return new Promise<ModelPageMeta | null>(async (resolve, reject) => {
-    db.update(query, newSys, options, (err, numReplaced) => {
-      if (err) {
-        return reject(err);
-      }
-    });
+  try {
+    await db.updateAsync(query, newSys, options);
+  } catch (error) {
+    throw new Error(
+      `Unexpected error occurred in findAsync: pageCache: ${error}`
+    );
+  }
 
-    const modelPage = await findByPageId(newSys.pageId);
-    resolve(modelPage);
-  });
+  return await findByPageId(newSys.pageId);
 };
 
-export const deletePage = async (pageId: string): Promise<boolean | null> => {
+export const deletePage = async (pageId: string): Promise<boolean> => {
   const modelPage: ModelPageMeta | null = await findByPageId(pageId);
   if (!modelPage) {
     log(
       `Record Not Found: Skip record update process: pageId: ${pageId}`,
       LogTypes.warn
     );
-    return null;
+    return false;
   }
 
   const query = {
     pageId: modelPage.pageId,
   };
-  return new Promise<boolean | null>(async (resolve, reject) => {
-    db.remove(query, {}, (err, numOfDocs) => {
-      log(`delete documents: ${numOfDocs}`);
-      if (err) {
-        return reject(err);
-      }
-    });
 
-    resolve(true);
-  });
+  try {
+    await db.removeAsync({ query }, {});
+  } catch (error) {
+    throw new Error(
+      `Unexpected error occurred in findAsync: pageCache: ${error}`
+    );
+  }
+
+  return true;
 };
-
-export default db;

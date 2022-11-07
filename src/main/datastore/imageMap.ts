@@ -4,8 +4,10 @@ import { log, LogTypes } from "../logger";
 // Cache the last modified date of a Notion's page with
 // Notion's pageId as the primary key.
 
+const LOCAL_DATABASE_NAME = "./.notion-hugo-cache/image_map.cache";
+
 const db = new Nedb({
-  filename: "./.notion-hugo-cache/image_map.cache",
+  filename: LOCAL_DATABASE_NAME,
   autoload: true,
   corruptAlertThreshold: 0,
 });
@@ -18,28 +20,28 @@ type imageMapParams = {
 export const findByImageId = async (
   imageId: string
 ): Promise<ModelImageMeta | null> => {
-  return new Promise<ModelImageMeta | null>((resolve, reject) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    db.find({ imageId: imageId }, (err: any, docs: ModelImageMeta[]) => {
-      if (err) {
-        return reject(new Error(err));
-      }
+  let docs: ModelImageMeta[];
+  try {
+    docs = await db.findAsync({ imageId: imageId });
+  } catch (error) {
+    throw new Error(
+      `Unexpected error occurred in findAsync: imageMap: ${error}`
+    );
+  }
 
-      if (docs && docs.length === 0) {
-        return resolve(null);
-      }
+  if (docs && docs.length === 0) {
+    return null;
+  }
 
-      if (docs && docs.length > 1) {
-        log(
-          "More than 1 record was found. Check the database unexpectedly.",
-          LogTypes.error
-        );
-        reject("Invalid query");
-      }
+  if (docs && docs.length > 1) {
+    log(
+      "More than 1 record was found. Check the database unexpectedly.",
+      LogTypes.error
+    );
+    throw new Error("Invalid query");
+  }
 
-      return resolve(docs[0]);
-    });
-  });
+  return docs[0];
 };
 
 export const createImageMap = async (
@@ -53,15 +55,16 @@ export const createImageMap = async (
   }
 
   const data: imageMapParams = { imageId: imageId, filePath: filePath };
-  return new Promise<ModelImageMeta | null>(async (resolve, reject) => {
-    db.insert(data, (err, _doc: any) => {
-      if (err) {
-        return reject(err);
-      }
-    });
 
-    resolve(await findByImageId(imageId));
-  });
+  try {
+    await db.insertAsync(data);
+  } catch (error) {
+    throw new Error(
+      `Unexpected error occurred in insertAsync: imageMap: ${error}`
+    );
+  }
+
+  return await findByImageId(imageId);
 };
 
 export const updateImageMap = async (
@@ -86,15 +89,15 @@ export const updateImageMap = async (
   };
 
   const data: imageMapParams = { imageId: imageId, filePath: filePath };
-  return new Promise<ModelImageMeta | null>(async (resolve, reject) => {
-    db.update(query, data, options, (err, _numReplaced) => {
-      if (err) {
-        return reject(err);
-      }
-    });
+  try {
+    await db.updateAsync(query, data, options);
+  } catch (error) {
+    throw new Error(
+      `Unexpected error occurred in updateAsync: imageMap: ${error}`
+    );
+  }
 
-    resolve(await findByImageId(imageId));
-  });
+  return await findByImageId(imageId);
 };
 
 export const createOrUpdateImageMap = async (
