@@ -200,8 +200,9 @@ const fetchDataFromNotion = async (
   const updatedMessages: string[] = [];
 
   const convertAndWriteMarkdown = async (pageId: string): Promise<void> => {
-    const options: { author: string } = {
+    const options: frontmatterOptions = {
       author: config.authorName ? config.authorName : "Writer",
+      utcOffset: config.utcOffset ? config.utcOffset : "",
     };
     const frontMatter = await getPageFrontmatter(
       pageId,

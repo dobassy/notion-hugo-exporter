@@ -1,4 +1,6 @@
 import { getArticle } from "./pageClient";
+import { isOnlyDate, setTimeMidnight } from "../helpers/date";
+import { log, LogTypes } from "../logger";
 import {
   pageTitle,
   pageAuthor,
@@ -18,7 +20,6 @@ import {
   hasPlainText,
   customPropery,
 } from "./property";
-import { log, LogTypes } from "../logger";
 
 // Store all metadata in frontMatter
 // Values that are not directly needed to create Hugo pages are stored in the
@@ -43,6 +44,11 @@ export const getPageFrontmatter = async (
 
   log(properties, LogTypes.debug);
 
+  const date = pagePublishedAt(properties);
+  const dateWithZone = isOnlyDate(date)
+    ? setTimeMidnight(date, options.utcOffset)
+    : date;
+
   let frontMatter: any = {
     sys: {
       pageId: pageId,
@@ -50,12 +56,11 @@ export const getPageFrontmatter = async (
       lastEditedTime: pageMeta["last_edited_time"],
     },
     title: pageTitle(properties),
-    date: pagePublishedAt(properties),
+    date: dateWithZone,
     description: pageDescription(properties),
     tags: pageTags(properties),
     categories: pageCategory(properties),
     author: pageAuthor(properties, options),
-    // legacy_alert: pageLegacyAlert(properties),
     draft: pageDraft(properties),
   };
 
@@ -79,7 +84,10 @@ export const getPageFrontmatter = async (
   }
 
   if (pageUpdatedAt(properties)) {
-    frontMatter["lastmod"] = pageUpdatedAt(properties);
+    const lastmod = pageUpdatedAt(properties);
+    frontMatter["lastmod"] = isOnlyDate(lastmod)
+      ? setTimeMidnight(lastmod, options.utcOffset)
+      : lastmod;
   }
 
   if (extractExternalUrl(properties)) {

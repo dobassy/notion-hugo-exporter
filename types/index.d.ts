@@ -13,6 +13,7 @@ type NotionHugoConfig = {
   customTransformerCallback?: (n2m: any) => void;
   fetchInterval: number;
   authorName?: string;
+  utcOffset?: string;
   s3ImageUrlWarningEnabled?: boolean;
   s3ImageUrlReplaceEnabled?: boolean;
   s3ImageConvertToWebpEnalbed?: boolean;
@@ -83,6 +84,7 @@ type frontMatter =
 
 type frontmatterOptions = {
   author: string;
+  utcOffset: string;
 };
 
 type Task = {
