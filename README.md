@@ -1,8 +1,19 @@
 # Notion to Hugo Expoter
 
-Use "Notion" as a Headless CMS to generate a content file for Hugo.
+Use "[Notion](https://www.notion.so/product)" as a Headless CMS to generate a content file for [Hugo](https://gohugo.io/).
 
 This software is dedicated to generating Markdown content for Hugo. After generating the content, follow the Hugo specifications.
+
+## Features
+
+- Get pages in any Notion database and convert them to Markdown
+- Having a cache to reduce requests to the Notion API
+- Stop the content generation process when you find an Amazon S3 image (Alternatively can be disable)
+- Download Amazon S3 images when detected (Optional)
+- Images downloaded from Amazon S3 can be automatically converted to WebP format (Optional)
+- Automatically convert strings set in `Url` and `Slug` with kebab-case
+- Implemented a callback that allows you to add arbitrary processing after downloading an image (See configuration for details)
+- See also [other configuration available](#available-configuration-parameters)
 
 ## Permission
 
@@ -10,16 +21,78 @@ This library only requires Notion's Read permission.
 
 None of your Notion Content will be modified.
 
-## ⚠⚠Caution⚠⚠
+## Quickstart
 
-The specifications are not flexible because it is intended for personal use.
-If I find an OSS library that is easy to use in the future, I will use it.
+### 1. Setup configuration.
 
-## Usage
+```bash
+export NOTION_TOKEN=
+export NOTION_BLOG_DATABASE_ID=
+```
+
+- `NOTION_TOKEN`: Create a secret token in "[my integrations](https://www.notion.so/my-integrations)".
+- `NOTION_BLOG_DATABASE_ID`: See [this page (developers.notion.con)](https://developers.notion.com/docs/working-with-databases) for how to find your database id.
+  - `https://www.notion.so/{workspace_name}/{database_id}?v={view_id}`
+
+Then, prepare the proparty in Notion database. (See the section below for details)
+
+### 2. Execute command with docker
+
+```bash
+docker run -it --rm \
+  -e NOTION_TOKEN=$NOTION_TOKEN \
+  -e NOTION_BLOG_DATABASE_ID=$NOTION_BLOG_DATABASE_ID \
+  -v $(pwd)/notion-hugo.config.js:/work/notion-hugo.config.js \
+  -v $(pwd)/content/:/work/content/ \
+  -v $(pwd)/static/:/work/static/ \
+  -v $(pwd)/.notion-hugo-cache/:/work/.notion-hugo-cache/ \
+  dobassy/notion-hugo-exporter:latest
+```
+
+Mount four files or directories.
+
+- `notion-hugo.config.js`: configuration file.
+- `content/`: The directory where Hugo will place the content (Markdown) it loads.
+- `static/`: The directory where the downloaded image is placed (correctly, it is set in the config).
+- `.notion-hugo-cache/`: The database that caches the state of articles and images downloaded from Notion.
+
+## Available Configuration Parameters
+
+Below is the parameters that can be set configuration in `notion-hugo.config.js`
+
+```js
+module.exports = {
+  directory: string,
+  concurrency: number,
+  authorName: string,
+  s3ImageUrlWarningEnabled: boolean,
+  s3ImageUrlReplaceEnabled: boolean,
+  s3ImageConvertToWebpEnalbed: boolean,
+  useOriginalConverter: boolean,
+  saveAwsImageDirectory: null | string,
+  downloadImageCallback: null | func(),
+  customTransformerCallback: null | func(),
+};
+```
+
+- `directory`: (Required) Directory for exporting pages. A directory is created for each section, but it is basically flat.
+- `concurrency`: Defaults to `5`.
+- `authorName`: You can uniformly set the author of the article.
+- `s3ImageUrlWarningEnabled`: Defaults to `true`. If the generated Markdown file contains an Amazon S3 URL, this tool will throw an error and terminate execution, but you can disable this behavior. It is highly recommended to enable it to avoid accidentally exposing your S3 URL. It should only be used for debugging.
+- `s3ImageUrlReplaceEnabled` (Experimental): Defaults to `false`. If your Notion content contains S3 URLs, replace them with local paths after downloading. This function attempts to reduce the time and effort required for image management.
+- `s3ImageConvertToWebpEnalbed`: Defaults to `false`. Converts downloaded images to Webp format.
+- `useOriginalConverter`: Defaults to `false`. See the [Adjust blank lines in paragraphs](#adjust-blank-lines-in-paragraphs) section for details.
+- `utcOffset`: Defaults to `null` as "`Z`". If you don't set the content publish time, it will be exported as 12:00 AM, but you can specify the time zone offset that will be used at that time (e.g. "`+09:00`").
+- `saveAwsImageDirectory`: Defaults to `null`. Images uploaded to Notion's pages are stored on Amazon S3, but the public URL has an 3600s limit. This is incompatible with generators that generate static HTML like Hugo. Therefore, you should upload it to some external storage and then embed the URL in the Notion's page. Enabling this option will make your work a little eaiser as the software will download the images.
+- `downloadImageCallback`: Defaults to `null`. If you want to use the downloaded image for addition processing, you can implement a callback. For example, an example implementation for uploading an image to WordPress (using REST API) can be found in `notion-hugo.config.02callback-sample.js`
+- `fetchInterval`: Only available in server mode. See "Watch mode (Server mode)" for more information. Defaults to `30`.
+- `customTransformerCallback`: See also https://github.com/souvikinator/notion-to-md#custom-transformers
+
+## Local build
+
+Currently, this software is not published to the NPM registry. You need local build.
 
 ### Step 1. Prepare the command
-
-Currently, this software is not published to the NPM registry.
 
 Set up a link to your local environment.
 
@@ -50,37 +123,6 @@ cp notion-hugo.config.01sample.js notion-hugo.config.js
 cp notion-hugo.config.02callback-sample.js notion-hugo.config.js
 ```
 
-#### Available Configuration Parameters
-
-Below is the parameters that can be set configuration in `notion-hugo.config.js`
-
-```js
-module.exports = {
-  directory: string,
-  concurrency: number,
-  authorName: string,
-  s3ImageUrlWarningEnabled: boolean,
-  s3ImageUrlReplaceEnabled: boolean,
-  s3ImageConvertToWebpEnalbed: boolean,
-  useOriginalConverter: boolean,
-  saveAwsImageDirectory: null | string,
-  downloadImageCallback: null | func(),
-  customTransformerCallback: null | func(),
-};
-```
-
-- `directory`: (Required) Directory for exporting pages. A directory is created for each section, but it is basically flat.
-- `concurrency`: Defaults to `5`.
-- `authorName`: You can uniformly set the author of the article.
-- `s3ImageUrlWarningEnabled`: Defaults to `true`. If the generated Markdown file contains an Amazon S3 URL, this tool will throw an error and terminate execution, but you can disable this behavior. It is highly recommended to enable it to avoid accidentally exposing your S3 URL. It should only be used for debugging.
-- `s3ImageUrlReplaceEnabled` (Experimental): Defaults to `false`. If your Notion content contains S3 URLs, replace them with local paths after downloading. This function attempts to reduce the time and effort required for image management.
-- `s3ImageConvertToWebpEnalbed`: Defaults to `false`. Converts downloaded images to Webp format.
-- `useOriginalConverter`: Defaults to `false`. See the [Adjust blank lines in paragraphs](#adjust-blank-lines-in-paragraphs) section for details.
-- `saveAwsImageDirectory`: Defaults to `null`. Images uploaded to Notion's pages are stored on Amazon S3, but the public URL has an 3600s limit. This is incompatible with generators that generate static HTML like Hugo. Therefore, you should upload it to some external storage and then embed the URL in the Notion's page. Enabling this option will make your work a little eaiser as the software will download the images.
-- `downloadImageCallback`: Defaults to `null`. If you want to use the downloaded image for addition processing, you can implement a callback. For example, an example implementation for uploading an image to WordPress (using REST API) can be found in `notion-hugo.config.02callback-sample.js`
-- `fetchInterval`: Only available in server mode. See "Watch mode (Server mode)" for more information. Defaults to `30`.
-- `customTransformerCallback`: See also https://github.com/souvikinator/notion-to-md#custom-transformers
-
 ### Step 4. Prepare the proparty in Notion database
 
 Notion database property keys must be:
@@ -108,10 +150,10 @@ Notion database property keys must be:
 
 #### Optional Properties.
 
-| Property Name | Type   | Required | Default value |
-| ------------- | ------ | -------- | ------------- |
-| linkTitle     | Text   |          |               |
-| weight        | Number |          |               |
+| Property Name | Type   |
+| ------------- | ------ |
+| linkTitle     | Text   |
+| weight        | Number |
 
 These properties will be used in [Docsy](https://www.docsy.dev/) theme.
 
@@ -133,7 +175,7 @@ In the above example:
 - A checkbox property set with the name 'ToC' in Notion recognizes it as a Boolean
 - A text propety set with the name 'AdditionalDescription' in Notion recognizes it as a Text (Stgin)
 
-Currently, type (array[1]) can be set to two types: `boolean` or `text`
+Currently, type (`array[1]`) can be set to two types: `boolean` or `text`
 
 ### Step 5. Run
 
@@ -147,18 +189,9 @@ $ notion-hugo
 $ notion-hugo --force
 ```
 
-This CLI is developed on Node v16.13.x
+This CLI is developed on Node v18.12.x
 
 (Presumably earlier versions will also work)
-
-## Features
-
-- Having a cache to reduce requests to the Notion API
-- You can set the upper limit of parallel execution (according to the pLimit library)
-- Stop the content generation process when you find an Amazon S3 image
-- Amazon S3 Download the image when you find it (optional)
-- Convert the string set in Url or Slug with kebab-case
-- Implemented a callback that allows you to add arbitrary processing after downloading an image (see configuration)
 
 ## Example for exported contnet
 
