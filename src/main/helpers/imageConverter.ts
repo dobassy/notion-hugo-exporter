@@ -11,12 +11,14 @@ export const convertWebp = async (
   const ext = extname(originalImagePath);
   const filename = basename(originalImagePath, ext);
 
-  if (ext === "webp") {
-    log(`This file is already in webp format: ${originalImagePath}`);
+  if (ext === ".webp") {
+    log(
+      `[Converter] This file is already in webp format: Skip conversion process: ${originalImagePath}`
+    );
     return originalImagePath;
   }
 
-  log(`Try to convert image: ${originalImagePath}`);
+  log(`[Converter] Attempt image conversion: ${originalImagePath}`);
   await imagemin([originalImagePath], {
     destination: directory,
     plugins: [imageminWebp({ quality: 75 })],
@@ -25,18 +27,20 @@ export const convertWebp = async (
   const webpFilename = normalize(`${directory}/${filename}.webp`);
 
   if (await pathExists(webpFilename)) {
-    log(`Convert image successfully: ${webpFilename}: Remove original file.`);
+    log(
+      `[Converter] Convert image successfully: ${webpFilename}: Remove original file.`
+    );
     try {
       await remove(originalImagePath);
     } catch (err) {
       log(
-        `Failed to remove file: ${originalImagePath}: errors: ${err}`,
+        `[Converter] Failed to remove file: ${originalImagePath}: errors: ${err}`,
         LogTypes.warn
       );
     }
     return webpFilename;
   } else {
-    log(`Failed to convert image: origin: ${originalImagePath}`);
+    log(`[Converter] Failed to convert image: origin: ${originalImagePath}`);
     return "";
   }
 };
