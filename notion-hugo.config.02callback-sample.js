@@ -18,10 +18,25 @@ const downloadImageCallback = (filepath) => {
 };
 
 const customTransformerCallback = (n2m) => {
+  // Example 1: Convert Bookmark block to Hugo format shortcode: {{<blogcard "https://notion.so/">}}
   n2m.setCustomTransformer("bookmark", async (block) => {
     const { bookmark } = block;
     if (!bookmark?.url) return "";
-    return `\{\{<blogcard "${bookmark.url}">\}\}`;
+    return `{{<blogcard "${bookmark.url}">}}`;
+  });
+
+  // Example 2: Convert YouTube URL to Hugo format shortcode: {{<youtube "abcdefg">}}
+  n2m.setCustomTransformer("video", async (block) => {
+    const { video } = block;
+    if (video.type !== "external") return "";
+
+    const youtoube = new RegExp(/youtube.com/);
+    if (youtoube.test(video.external.url)) {
+      const url = new URL(video.external.url);
+      const video_id = url.searchParams.get("v");
+      return `{{<youtube "${video_id}">}}`;
+    }
+    return `Video URL: ${video.external.url}`;
   });
 };
 
