@@ -134,6 +134,10 @@ const fetchBodyFromNotion = async (
     frontMatter.sys.pageId
   );
 
+  if (process.env.DEBUG_DUMP_BLOCK_OBJECT) {
+    console.info(blocks);
+  }
+
   const awsUrls = await validateAwsUrlIncluded(blocks);
 
   if (awsUrls.length > 0) {
