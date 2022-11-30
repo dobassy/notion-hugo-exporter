@@ -32,7 +32,7 @@ export const determineFilePath = (
     const directory = parseDirectoryPath(config, meta);
 
     const datePrefix = trimYmd(meta.date);
-    let fileName = `${datePrefix}-${meta.sys.pageId}`;
+    const fileName = `${datePrefix}-${meta.sys.pageId}`;
 
     return path.normalize(`./${directory}/${fileName}.${fileExtension}`);
   }

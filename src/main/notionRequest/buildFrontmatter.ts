@@ -1,7 +1,6 @@
+import { getArticle } from "./pageClient";
+import { isOnlyDate, setTimeMidnight } from "../helpers/date";
 import { log, LogTypes } from "../logger";
-import notion from "./client";
-import type { ListBlockChildrenResponse } from "@notionhq/client/build/src/api-endpoints.d";
-import { ListBlockChildrenResponseResults } from "notion-to-md/build/types";
 import {
   pageTitle,
   pageAuthor,
@@ -34,6 +33,8 @@ export const getPageFrontmatter = async (
 ): Promise<frontMatter> => {
   log(`[Info] [pageId: ${pageId}] Fetch from Notion API`);
   const pageMeta = await getArticle(pageId);
+
+  //@ts-ignore
   if (pageMeta["archive"]) {
     log(pageMeta);
     throw new Error(
@@ -41,23 +42,31 @@ export const getPageFrontmatter = async (
       Make sure the publishing settings for this article are correct.`
     );
   }
+  //@ts-ignore
   const properties = pageMeta["properties"];
 
   log(properties, LogTypes.debug);
 
-  let frontMatter: any = {
+  const date = pagePublishedAt(properties);
+  const dateWithZone = isOnlyDate(date)
+    ? setTimeMidnight(date, options.utcOffset)
+    : date;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const frontMatter: any = {
     sys: {
       pageId: pageId,
+      //@ts-ignore
       createdTime: pageMeta["created_time"],
+      //@ts-ignore
       lastEditedTime: pageMeta["last_edited_time"],
     },
     title: pageTitle(properties),
-    date: pagePublishedAt(properties),
+    date: dateWithZone,
     description: pageDescription(properties),
     tags: pageTags(properties),
     categories: pageCategory(properties),
     author: pageAuthor(properties, options),
-    // legacy_alert: pageLegacyAlert(properties),
     draft: pageDraft(properties),
   };
 
@@ -81,7 +90,10 @@ export const getPageFrontmatter = async (
   }
 
   if (pageUpdatedAt(properties)) {
-    frontMatter["lastmod"] = pageUpdatedAt(properties);
+    const lastmod = pageUpdatedAt(properties);
+    frontMatter["lastmod"] = isOnlyDate(lastmod)
+      ? setTimeMidnight(lastmod, options.utcOffset)
+      : lastmod;
   }
 
   if (extractExternalUrl(properties)) {
@@ -109,32 +121,4 @@ export const getPageFrontmatter = async (
   }
 
   return frontMatter as frontMatter;
-};
-
-const getArticle = async (pageId: string) => {
-  const response = await notion.pages.retrieve({ page_id: pageId });
-  return response;
-};
-
-// Expecting to use the "Notion to Markdown" package
-export const getBlocks = async (
-  blockId: string
-): Promise<ListBlockChildrenResponseResults> => {
-  const blocks: ListBlockChildrenResponseResults = [];
-  let cursor: unknown;
-  while (true) {
-    const response = (await notion.blocks.children.list({
-      start_cursor: cursor,
-      block_id: blockId,
-    })) as ListBlockChildrenResponse;
-    const results = response.results;
-    const next_cursor = response.next_cursor;
-
-    blocks.push(...results);
-    if (!next_cursor) {
-      break;
-    }
-    cursor = next_cursor;
-  }
-  return blocks;
 };

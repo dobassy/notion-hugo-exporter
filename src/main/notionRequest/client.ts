@@ -1,7 +1,4 @@
-const {
-  Client,
-  LogLevel,
-} = require("@notionhq/client");
+import { Client, LogLevel } from "@notionhq/client";
 
 const loglevel = LogLevel.ERROR;
 

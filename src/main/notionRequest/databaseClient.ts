@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { log } from "../logger";
 import notion from "./client";
 
@@ -7,14 +8,17 @@ const isAllIncludes = (searches: string[], targets: string[]) =>
   searches.every((el: string) => targets.includes(el));
 
 export const getDtabaseMeta = async () => {
+  if (!databaseId) throw new Error("Notion databaseId does not defined.");
   const response = await notion.databases.retrieve({ database_id: databaseId });
   return response;
 };
 
 export const getPublishedArticles = async (): Promise<any[]> => {
+  if (!databaseId) throw new Error("Notion databaseId does not defined.");
   const pages = [];
   let cursor = undefined;
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const { results, next_cursor }: { results: any[]; next_cursor: any } =
       await notion.databases.query({

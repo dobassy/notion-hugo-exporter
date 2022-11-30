@@ -1,5 +1,26 @@
 import { urlize } from "../helpers/string";
 
+type RichTextItemResponse = {
+  type: "text";
+  text: {
+    content: string;
+    link: {
+      url: string;
+    } | null;
+  };
+  annotations: {
+    bold: boolean;
+    italic: boolean;
+    strikethrough: boolean;
+    underline: boolean;
+    code: boolean;
+    color: string;
+  };
+  plain_text: string;
+  href: string | null;
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const pageTitle = (prop: any): string => {
   return extractPlainText(prop["Name"]);
 };
@@ -74,7 +95,9 @@ export const pageWeight = (prop: any): string | null => {
 };
 
 const extractPlainText = (prop: any): string => {
-  if (prop["title"]) {
+  if (prop["title"] && prop["title"].length > 1) {
+    return mergeMultipleTitle(prop["title"]);
+  } else if (prop["title"]) {
     return prop["title"][0]["plain_text"];
   } else if (prop["rich_text"] && prop["rich_text"].length === 1) {
     return prop["rich_text"][0]["plain_text"];
@@ -82,6 +105,13 @@ const extractPlainText = (prop: any): string => {
     return prop["select"]["name"];
   }
   return "";
+};
+
+const mergeMultipleTitle = (
+  title_objects: Array<RichTextItemResponse>
+): string => {
+  const mergedTitle = title_objects.map((title) => title["plain_text"]);
+  return mergedTitle.join("");
 };
 
 const extractNumber = (prop: any): string => {
@@ -160,3 +190,4 @@ export const customPropery = (
   }
   return undefined;
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */

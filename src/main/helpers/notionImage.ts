@@ -21,7 +21,7 @@ export const isAwsImageUrlString = (string: string): boolean => {
 
 export const getImageFilename = (url: string): string => {
   const parser = new URL(url);
-  const re = new RegExp(/([^\/]+\.(?:jpe?g|gif|png|webp|avif))/, "i");
+  const re = new RegExp(/([^/]+\.(?:jpe?g|gif|png|webp|avif))/, "i");
   const result = parser.pathname.match(re);
 
   if (!result) {

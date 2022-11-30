@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ensureDir, pathExists } from "fs-extra";
 import { join } from "path";
 import { createOrUpdateImageMap, findByImageId } from "../datastore/imageMap";
@@ -5,8 +6,8 @@ import { log, LogTypes } from "../logger";
 import { convertWebp } from "./imageConverter";
 import { getImageFilename, getImageFullName, getImageUID } from "./notionImage";
 
-const fs = require("fs");
-const Axios = require("axios");
+import fs from "fs";
+import Axios from "axios";
 
 const resolveFilePath = async (
   config: NotionHugoConfig,

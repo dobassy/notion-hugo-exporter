@@ -1,7 +1,8 @@
 import createFile from "./createFile";
 import { error, log, LogTypes } from "./logger";
-import { getBlocks, getPageFrontmatter } from "./notionRequest/getArticles";
-import { getPublishedArticles } from "./notionRequest/getDatabases";
+import { getBlocks } from "./notionRequest/pageClient";
+import { getPublishedArticles } from "./notionRequest/databaseClient";
+import { getPageFrontmatter } from "./notionRequest/buildFrontmatter";
 import fs from "fs-extra";
 import { NotionToMarkdown } from "notion-to-md/build/notion-to-md";
 import { NotionToMarkdownCustom } from "./notion-to-md/notion-to-md";
@@ -18,6 +19,7 @@ import { downloadImage } from "./helpers/donwload";
 import { includeAwsImageUrl } from "./helpers/validation";
 import { convertS3ImageUrl } from "./helpers/markdown";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const checkFrontMatterContainRequiredValues = (
   frontMatter: frontMatter
 ): boolean => {
@@ -85,7 +87,7 @@ const notionImageBlockUrl = (block: any): string => {
 const validateAwsUrlIncluded = async (blocks: any[]): Promise<string[]> => {
   const urls: any = [];
   const extractUrl = async (blocks: any) => {
-    for (let block of blocks) {
+    for (const block of blocks) {
       if (block["has_children"]) {
         const childBlocks = await getBlocks(block["id"]);
         await extractUrl(childBlocks);
@@ -131,6 +133,10 @@ const fetchBodyFromNotion = async (
   const blocks: ListBlockChildrenResponseResults = await getBlocks(
     frontMatter.sys.pageId
   );
+
+  if (process.env.DEBUG_DUMP_BLOCK_OBJECT) {
+    console.info(blocks);
+  }
 
   const awsUrls = await validateAwsUrlIncluded(blocks);
 
@@ -199,8 +205,9 @@ const fetchDataFromNotion = async (
   const updatedMessages: string[] = [];
 
   const convertAndWriteMarkdown = async (pageId: string): Promise<void> => {
-    const options: { author: string } = {
+    const options: frontmatterOptions = {
       author: config.authorName ? config.authorName : "Writer",
+      utcOffset: config.utcOffset ? config.utcOffset : "",
     };
     const frontMatter = await getPageFrontmatter(
       pageId,

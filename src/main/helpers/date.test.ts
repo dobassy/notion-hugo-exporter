@@ -1,4 +1,4 @@
-import { isDateNewer, trimYmd } from "./date";
+import { isDateNewer, isOnlyDate, setTimeMidnight, trimYmd } from "./date";
 
 describe("Comparision of GMT and JST", () => {
   test("If the time are the same, it is judged that they have not been updated.", () => {
@@ -26,5 +26,43 @@ describe("Trim YYYY-mm-dd format from date string ", () => {
     const date1 = "2022-01";
     const result = trimYmd(date1);
     expect(result).toBe("");
+  });
+});
+
+describe("Check date only?", () => {
+  test("valid input, then true", () => {
+    const date1 = "2022-01-20";
+    const result = isOnlyDate(date1);
+    expect(result).toBe(true);
+  });
+  test("invalid input, then false", () => {
+    const date1 = "2022-01-20T10:00:00.000Z";
+    const result = isOnlyDate(date1);
+    expect(result).toBe(false);
+  });
+  test("invalid input, then false", () => {
+    const date1 = "2022-01";
+    const result = isOnlyDate(date1);
+    expect(result).toBe(false);
+  });
+});
+
+describe("setTimeMidnight", () => {
+  const date1 = "2022-01-20";
+  test("valid input", () => {
+    const result = setTimeMidnight(date1);
+    expect(result).toBe("2022-01-20T00:00:00Z");
+  });
+  test("valid input with blank string", () => {
+    const result = setTimeMidnight(date1, "");
+    expect(result).toBe("2022-01-20T00:00:00Z");
+  });
+  test("valid input with +09:00", () => {
+    const result = setTimeMidnight(date1, "+09:00");
+    expect(result).toBe("2022-01-20T00:00:00+09:00");
+  });
+  test("valid input with +0900", () => {
+    const result = setTimeMidnight(date1, "+0900");
+    expect(result).toBe("2022-01-20T00:00:00+0900");
   });
 });
